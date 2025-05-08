@@ -123,10 +123,18 @@ const addListing = async (req, res) => {
   }
 };
 
-// Get all published listings with filters
+// Get all published listings with filters and pagination
 const getAllListings = async (req, res) => {
   try {
-    const { commune, typeOfListing, priceMin, priceMax, bedrooms, bathrooms } = req.query;
+    // Extract pagination parameters
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const maxLimit = 50; // Set a maximum limit to prevent abuse
+    const actualLimit = Math.min(limit, maxLimit);
+    const skip = (page - 1) * actualLimit;
+
+    // Extract filtering parameters
+    const { commune, typeOfListing, priceMin, priceMax, bedrooms, bathrooms, sortBy, sortOrder } = req.query;
     const filter = { isDeleted: false };
 
     // Apply filters
@@ -144,11 +152,59 @@ const getAllListings = async (req, res) => {
       ];
     }
 
+    // Determine sorting options
+    const sortOptions = {};
+    if (sortBy) {
+      // Default to sorting by date if invalid sort field is provided
+      const validSortFields = ['createdAt', 'priceMonthly', 'priceSale', 'priceDaily'];
+      const field = validSortFields.includes(sortBy) ? sortBy : 'createdAt';
+      sortOptions[field] = sortOrder === 'asc' ? 1 : -1;
+    } else {
+      // Default sorting by creation date, newest first
+      sortOptions.createdAt = -1;
+    }
+
+    // Get total count for pagination metadata
+    const total = await Listing.countDocuments(filter);
+
+    // Execute the paginated query
     const listings = await Listing.find(filter)
-      .sort({ createdAt: -1 })
+      .sort(sortOptions)
+      .skip(skip)
+      .limit(actualLimit)
       .populate('createdBy', 'firstName lastName email');
 
-    res.status(200).json({ listings });
+    // Transform the response as before
+    const formattedListings = listings.map(listing => {
+      const plainListing = listing.toObject();
+      
+      // If images are stored as objects with url and public_id, extract just the URLs
+      if (plainListing.images.length > 0 && typeof plainListing.images[0] === 'object') {
+        plainListing.images = plainListing.images.map(img => img.url);
+      }
+      
+      return plainListing;
+    });
+
+    // Calculate pagination metadata
+    const totalPages = Math.ceil(total / actualLimit);
+    const hasNext = page < totalPages;
+    const hasPrev = page > 1;
+
+    res.status(200).json({ 
+      listings: formattedListings,
+      pagination: {
+        total,
+        count: formattedListings.length,
+        page,
+        limit: actualLimit,
+        totalPages,
+        hasNext,
+        hasPrev,
+        nextPage: hasNext ? page + 1 : null,
+        prevPage: hasPrev ? page - 1 : null
+      }
+    });
   } catch (error) {
     logger.error('Error fetching listings:', error);
     res.status(500).json({
@@ -178,14 +234,59 @@ const getListing = async (req, res) => {
   }
 };
 
-// Get listings for current user
+// Get listings for current user with pagination
 const getMyListings = async (req, res) => {
   try {
+    // Extract pagination parameters
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const maxLimit = 50;
+    const actualLimit = Math.min(limit, maxLimit);
+    const skip = (page - 1) * actualLimit;
+
+    // Get total count
+    const total = await Listing.countDocuments({
+      createdBy: req.user._id
+    });
+
+    // Execute paginated query
     const listings = await Listing.find({
       createdBy: req.user._id
-    }).sort({ createdAt: -1 });
+    })
+    .sort({ createdAt: -1 })
+    .skip(skip)
+    .limit(actualLimit);
 
-    res.status(200).json(listings);
+    // Format listings to show only URLs for frontend display
+    const formattedListings = listings.map(listing => {
+      const plainListing = listing.toObject();
+      
+      if (plainListing.images.length > 0 && typeof plainListing.images[0] === 'object') {
+        plainListing.images = plainListing.images.map(img => img.url);
+      }
+      
+      return plainListing;
+    });
+
+    // Calculate pagination metadata
+    const totalPages = Math.ceil(total / actualLimit);
+    const hasNext = page < totalPages;
+    const hasPrev = page > 1;
+
+    res.status(200).json({
+      listings: formattedListings,
+      pagination: {
+        total,
+        count: formattedListings.length,
+        page,
+        limit: actualLimit,
+        totalPages,
+        hasNext,
+        hasPrev,
+        nextPage: hasNext ? page + 1 : null,
+        prevPage: hasPrev ? page - 1 : null
+      }
+    });
   } catch (error) {
     logger.error('Error getting user listings:', error);
     res.status(500).json({
