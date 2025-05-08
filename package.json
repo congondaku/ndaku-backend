@@ -4,7 +4,9 @@
   "description": "First code on this api",
   "main": "app.js",
   "scripts": {
-    "start": "nodemon --experimental-modules --es-module-specifier-resolution=node app.js",
+    "start": "node app.js",
+    "dev": "nodemon --experimental-modules --es-module-specifier-resolution=node app.js",
+    "build": "echo 'Build completed successfully'",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Youssouf Yogue (yousyogue@gmail.com)",
@@ -24,5 +26,8 @@
     "path": "^0.12.7",
     "validator": "^13.15.0",
     "winston": "^3.17.0"
+  },
+  "engines": {
+    "node": "18.x"
   }
 }
