@@ -107,7 +107,7 @@ const listingSchema = new mongoose.Schema({
     type: Date,
     default: () => {
       const now = new Date();
-      now.setMonth(now.getMonth() + 1);
+      now.setMonth(now.getMonth() + 3);
       return now;
     }
   },
