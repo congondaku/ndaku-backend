@@ -1,16 +1,18 @@
 {
   "name": "ndaku-backend",
   "version": "1.0.0",
-  "description": "First code on this api",
+  "description": "NDAKU Real Estate Listings API - Proprietary and confidential software",
   "main": "app.js",
+  "private": true,
   "scripts": {
     "start": "node app.js",
     "dev": "nodemon --experimental-modules --es-module-specifier-resolution=node app.js",
     "build": "echo 'Build completed successfully'",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "Youssouf Yogue (yousyogue@gmail.com)",
-  "license": "ISC",
+  "author": "Youssouf Yogue (youssoufyogue@congondaku.com)",
+  "license": "UNLICENSED",
+  "copyright": "© 2025 NDAKU. All rights reserved.",
   "dependencies": {
     "bcryptjs": "^2.4.3",
     "cloudinary": "^1.41.3",
@@ -29,5 +31,16 @@
   },
   "engines": {
     "node": "18.x"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/congondaku/ndaku-backend.git"
+  },
+  "keywords": [
+    "real-estate",
+    "listings",
+    "api",
+    "ndaku",
+    "proprietary"
+  ]
 }
