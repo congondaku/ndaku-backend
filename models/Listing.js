@@ -25,40 +25,28 @@ const listingSchema = new mongoose.Schema({
   },
   typeOfListing: { 
     type: String,
-    enum: {
-      values: ['apartment', 'house', 'condo'],
-      message: '{VALUE} is not a valid listing type'
-    },
+    enum: ['apartment', 'house', 'condo'],
     required: [true, 'Listing type is required']
   },
   listingType: { 
     type: String,
-    enum: {
-      values: ['sale', 'rent', 'daily'],
-      message: '{VALUE} is not a valid listing type'
-    },
+    enum: ['sale', 'rent', 'daily'],
     required: [true, 'Listing duration type is required']
   },
   priceMonthly: { 
     type: Number, 
-    min: [0, 'Price cannot be negative'],
-    required: function() {
-      return this.listingType === 'rent';
-    }
+    min: 0,
+    required: function() { return this.listingType === 'rent'; }
   },
   priceDaily: { 
     type: Number, 
-    min: [0, 'Price cannot be negative'],
-    required: function() {
-      return this.listingType === 'daily';
-    }
+    min: 0,
+    required: function() { return this.listingType === 'daily'; }
   },
   priceSale: { 
     type: Number, 
-    min: [0, 'Price cannot be negative'],
-    required: function() {
-      return this.listingType === 'sale';
-    }
+    min: 0,
+    required: function() { return this.listingType === 'sale'; }
   },
   details: {
     floor: { type: Number, default: 0, min: 0 },
@@ -70,8 +58,7 @@ const listingSchema = new mongoose.Schema({
   address: { 
     type: String, 
     required: [true, 'Address is required'],
-    trim: true,
-    unique: true
+    trim: true
   },
   quartier: { 
     type: String, 
@@ -96,20 +83,11 @@ const listingSchema = new mongoose.Schema({
   images: { 
     type: [String], 
     required: [true, 'At least one image is required'],
-    validate: {
-      validator: function(images) {
-        return images.length > 0;
-      },
-      message: 'At least one image is required'
-    }
+    validate: [array => array.length > 0, 'At least one image is required']
   },
   expiryDate: {
     type: Date,
-    default: () => {
-      const now = new Date();
-      now.setMonth(now.getMonth() + 3);
-      return now;
-    }
+    default: () => new Date(Date.now() + 90 * 24 * 60 * 60 * 1000) // 3 months
   },
   isDeleted: { 
     type: Boolean, 
@@ -118,7 +96,7 @@ const listingSchema = new mongoose.Schema({
   createdBy: { 
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: [true, 'Creator ID is required']
+    required: true
   }
 }, { 
   timestamps: true,
@@ -126,20 +104,22 @@ const listingSchema = new mongoose.Schema({
   toObject: { virtuals: true }
 });
 
-listingSchema.pre('validate', function(next) {
-  if (this.listingType === 'rent' && (this.priceDaily || this.priceSale)) {
-    this.invalidate('priceDaily', 'Only priceMonthly should be set for rent listings');
-    this.invalidate('priceSale', 'Only priceMonthly should be set for rent listings');
-  } else if (this.listingType === 'daily' && (this.priceMonthly || this.priceSale)) {
-    this.invalidate('priceMonthly', 'Only priceDaily should be set for daily listings');
-    this.invalidate('priceSale', 'Only priceDaily should be set for daily listings');
-  } else if (this.listingType === 'sale' && (this.priceMonthly || this.priceDaily)) {
-    this.invalidate('priceMonthly', 'Only priceSale should be set for sale listings');
-    this.invalidate('priceDaily', 'Only priceSale should be set for sale listings');
+// Modified pre-save hook to clean up price fields
+listingSchema.pre('save', function(next) {
+  if (this.listingType === 'rent') {
+    this.priceDaily = undefined;
+    this.priceSale = undefined;
+  } else if (this.listingType === 'daily') {
+    this.priceMonthly = undefined;
+    this.priceSale = undefined;
+  } else if (this.listingType === 'sale') {
+    this.priceMonthly = undefined;
+    this.priceDaily = undefined;
   }
   next();
 });
 
+// Indexes
 listingSchema.index({ commune: 1 });
 listingSchema.index({ typeOfListing: 1 });
 listingSchema.index({ priceMonthly: 1 });

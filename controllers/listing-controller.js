@@ -20,9 +20,21 @@ const validateListingData = (body) => {
   return { isValid: true };
 };
 
+
 // Create a new listing
 const addListing = async (req, res) => {
   try {
+    // Log the complete request body and files for debugging
+    console.log("Request body:", req.body);
+    console.log("Request files:", req.files ? req.files.length : "none");
+    
+    // Log individual form fields for debugging
+    console.log("priceSale value:", req.body.priceSale, typeof req.body.priceSale);
+    console.log("priceMonthly value:", req.body.priceMonthly, typeof req.body.priceMonthly);
+    console.log("priceDaily value:", req.body.priceDaily, typeof req.body.priceDaily);
+    console.log("price value:", req.body.price, typeof req.body.price);
+    console.log("debugPriceSale value:", req.body.debugPriceSale, typeof req.body.debugPriceSale);
+    
     const validation = validateListingData(req.body);
     if (!validation.isValid) {
       return res.status(400).json({
@@ -55,12 +67,58 @@ const addListing = async (req, res) => {
       isDeleted: false
     };
 
-    // Set appropriate price field
-    const priceField =
-      req.body.listingType === 'sale' ? 'priceSale' :
-        req.body.listingType === 'rent' ? 'priceMonthly' : 'priceDaily';
+    // IMPROVED PRICE HANDLING
+    // Convert price fields to numbers explicitly
+    const getNumericPrice = (value) => {
+      if (!value) return undefined;
+      
+      // If it's already a number, return it
+      if (typeof value === 'number') return value;
+      
+      // Try to convert string to number
+      const numValue = parseFloat(value);
+      return isNaN(numValue) ? 0 : numValue;
+    };
 
-    listingData[priceField] = parseFloat(req.body.price || 0);
+    // Handle each price field
+    if (req.body.priceSale !== undefined) {
+      listingData.priceSale = getNumericPrice(req.body.priceSale);
+      console.log("Setting priceSale to:", listingData.priceSale);
+    } else if (req.body.debugPriceSale !== undefined) {
+      // Try the debug field if original field is missing
+      listingData.priceSale = getNumericPrice(req.body.debugPriceSale);
+      console.log("Setting priceSale from debug field to:", listingData.priceSale);
+    }
+    
+    if (req.body.priceMonthly !== undefined) {
+      listingData.priceMonthly = getNumericPrice(req.body.priceMonthly);
+    } else if (req.body.debugPriceMonthly !== undefined) {
+      listingData.priceMonthly = getNumericPrice(req.body.debugPriceMonthly);
+    }
+    
+    if (req.body.priceDaily !== undefined) {
+      listingData.priceDaily = getNumericPrice(req.body.priceDaily);
+    } else if (req.body.debugPriceDaily !== undefined) {
+      listingData.priceDaily = getNumericPrice(req.body.debugPriceDaily);
+    }
+
+    // If we have a generic price field and none of the specific ones have a non-zero value,
+    // set the appropriate price field based on listing type
+    if (req.body.price !== undefined && 
+        req.body.listingType && 
+        !listingData.priceSale && !listingData.priceMonthly && !listingData.priceDaily) {
+      
+      const price = getNumericPrice(req.body.price);
+      
+      if (req.body.listingType === 'sale') {
+        listingData.priceSale = price;
+        console.log("Setting priceSale from generic price to:", price);
+      } else if (req.body.listingType === 'rent') {
+        listingData.priceMonthly = price;
+      } else if (req.body.listingType === 'daily') {
+        listingData.priceDaily = price;
+      }
+    }
 
     // Validate images
     if (!req.files || req.files.length === 0) {
@@ -88,9 +146,13 @@ const addListing = async (req, res) => {
 
     listingData.images = uploadResults.map(img => img.secure_url);
 
+    console.log("Listing data to save:", JSON.stringify(listingData, null, 2));
+
     // Save to database
     const newListing = new Listing(listingData);
     const savedListing = await newListing.save();
+
+    console.log("Saved listing:", JSON.stringify(savedListing, null, 2));
 
     return res.status(201).json({
       message: 'Listing created successfully',
