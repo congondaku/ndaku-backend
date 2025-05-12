@@ -1,22 +1,51 @@
 const serverless = require('serverless-http');
-const app = require('../../app'); // This points to your app.js file
+const mongoose = require('mongoose');
+const dotenv = require('dotenv');
 
-// Winston might have issues in a serverless environment, so let's handle that
-// If winston has any serverless-specific issues, they'll be caught here
-try {
-  // Wrap the Express app with serverless handler
-  module.exports.handler = serverless(app);
-} catch (error) {
-  console.error('Error initializing serverless handler:', error);
+// Set environment flag
+process.env.NETLIFY = 'true';
+
+// Load the serverless-friendly version of your app
+const app = require('../../app-serverless');
+
+// Connect to MongoDB before handling requests
+const MONGO_URI = process.env.MONGODB_URI;
+
+// Create a connection handler
+const connectToDatabase = async () => {
+  if (mongoose.connection.readyState !== 1) {
+    console.log('Connecting to MongoDB...');
+    await mongoose.connect(MONGO_URI, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true
+    });
+    console.log('Connected to MongoDB');
+  }
+  return true;
+};
+
+// Create a serverless handler that ensures DB connection
+const handler = serverless(app);
+
+// Export the wrapped handler
+module.exports.handler = async (event, context) => {
+  // Keep the connection alive between function calls
+  context.callbackWaitsForEmptyEventLoop = false;
   
-  // Provide a fallback handler in case of winston initialization issues
-  module.exports.handler = async (event, context) => {
+  try {
+    // Make sure we're connected to the database
+    await connectToDatabase();
+    
+    // Handle the request
+    return await handler(event, context);
+  } catch (error) {
+    console.error('Error in serverless handler:', error);
     return {
       statusCode: 500,
       body: JSON.stringify({ 
-        error: 'Server initialization error',
-        message: 'There was a problem setting up the serverless environment'
+        error: 'Server Error', 
+        message: error.message || 'Something went wrong'
       })
     };
-  };
-}
+  }
+};
