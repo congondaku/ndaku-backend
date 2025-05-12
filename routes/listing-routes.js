@@ -5,23 +5,8 @@ const listingController = require('../controllers/listing-controller');
 const locationData = require('../utils/locationData');
 const villesData = require('../utils/villesData');
 const multer = require('multer');
-const { storage } = require('../config/cloudinary');
+const { upload } = require('../config/s3'); // Changed to use S3 config
 const Listing = require('../models/Listing');
-
-/**
- * Configure multer for file uploads
- */
-const upload = multer({
-  storage,
-  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
-  fileFilter: (req, file, cb) => {
-    if (file.mimetype.startsWith('image/')) {
-      cb(null, true);
-    } else {
-      cb(new Error('Only image files are allowed!'), false);
-    }
-  }
-});
 
 /**
  * Middleware to handle multer errors
@@ -31,7 +16,7 @@ const handleMulterError = (err, req, res, next) => {
     return res.status(400).json({
       success: false,
       message: err.code === 'LIMIT_FILE_SIZE' 
-        ? 'File too large (max 10MB)' 
+        ? 'File too large (max 5MB)' 
         : `Upload error: ${err.message}`
     });
   } else if (err) {
@@ -136,21 +121,21 @@ router.use(authenticate); // All routes after this require authentication
 // Get current user's listings
 router.get('/user/current', listingController.getMyListings);
 
-// Create new listing
+// Create new listing - now using S3 upload
 router.post(
   '/add',
   logRequest,
-  upload.array('images', 10),
+  upload.array('images', 10), // This now uses the S3 upload middleware
   handleMulterError,
   processListingData,
   listingController.addListing
 );
 
-// Update existing listing
+// Update existing listing - now using S3 upload
 router.put(
   '/update/:id',
   logRequest,
-  upload.array('images', 10),
+  upload.array('images', 10), // This now uses the S3 upload middleware
   handleMulterError,
   listingController.updateListing
 );
@@ -208,4 +193,3 @@ router.patch('/:id/toggle-status', listingController.togglePublishStatus);
 router.delete('/:id', listingController.deleteListing);
 
 module.exports = router;
-
