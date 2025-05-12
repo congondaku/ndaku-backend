@@ -629,3 +629,4 @@
 2025-05-12T01:37:14.811Z info: Found user:
 2025-05-12T01:37:24.542Z info: Login attempt with email:
 2025-05-12T01:37:24.594Z info: Found user:
+2025-05-12T02:31:18.642Z error: API Error (404) at GET /api/listings/68210adef0aede0927d6e820

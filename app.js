@@ -18,6 +18,8 @@ if (!fs.existsSync(logsDir)) {
   fs.mkdirSync(logsDir, { recursive: true });
 }
 
+const isServerless = process.env.NETLIFY || false;
+
 // Configure Winston logger
 const logger = winston.createLogger({
   level: 'info',
@@ -29,14 +31,7 @@ const logger = winston.createLogger({
   ),
   defaultMeta: { service: 'listing-service' },
   transports: [
-    new winston.transports.Console(), // Log to console as well
-    new winston.transports.File({ 
-      filename: path.join(logsDir, 'listing-error.log'), 
-      level: 'error' 
-    }),
-    new winston.transports.File({ 
-      filename: path.join(logsDir, 'listing-combined.log')
-    })
+    new winston.transports.Console() // Log to console always
   ]
 });
 
