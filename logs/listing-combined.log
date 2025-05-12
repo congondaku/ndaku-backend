@@ -1,0 +1,632 @@
+2025-05-12T00:35:30.386Z error: (node:57527) [MONGODB DRIVER] Warning: useNewUrlParser is a deprecated option: useNewUrlParser has no effect since Node.js Driver version 4.0.0 and will be removed in the next major version
+(Use `node --trace-warnings ...` to show where the warning was created)
+2025-05-12T00:35:30.387Z error: (node:57527) [MONGODB DRIVER] Warning: useUnifiedTopology is a deprecated option: useUnifiedTopology has no effect since Node.js Driver version 4.0.0 and will be removed in the next major version
+2025-05-12T00:35:31.090Z info: ✅ Connected to MongoDB
+2025-05-12T00:35:31.095Z info: 🚀 Server running on port 5002
+2025-05-12T00:35:34.729Z error: Error testing S3 connection: Missing credentials in config, if using AWS_CONFIG_FILE, set AWS_SDK_LOAD_CONFIG=1
+2025-05-12T00:35:47.236Z info: Login attempt with email:
+2025-05-12T00:35:47.309Z info: Found user:
+2025-05-12T00:38:23.125Z info: ==== RECEIVED LISTING DATA ON SERVER ====
+2025-05-12T00:38:23.126Z info: {
+  "requestBody": {},
+  "files": "No files"
+}
+2025-05-12T00:38:23.191Z info: Listing API Request:
+2025-05-12T00:38:24.476Z info: Request body:
+2025-05-12T00:38:24.476Z info: Files:
+2025-05-12T00:38:24.577Z info: ==== DATABASE SAVED LISTING DATA ====
+2025-05-12T00:38:24.577Z info: {
+  "response": {
+    "success": true,
+    "message": "Listing created successfully",
+    "listing": {
+      "listerFirstName": "Mala",
+      "listerLastName": "Mala",
+      "listerEmailAddress": "awa@gmail.com",
+      "listerPhoneNumber": "123456789012",
+      "listerProfileImage": null,
+      "typeOfListing": "condo",
+      "listingType": "daily",
+      "priceDaily": 0,
+      "currency": "CDF",
+      "negotiable": true,
+      "details": {
+        "floor": 8,
+        "bedroom": 8,
+        "bathroom": 8,
+        "kitchen": 8,
+        "dinningRoom": 8,
+        "livingRoom": 8,
+        "parking": 8,
+        "area": 890,
+        "garden": true,
+        "furnished": true,
+        "yearBuilt": 2020,
+        "wifi": true,
+        "airConditioner": true,
+        "security": true,
+        "solarPower": true,
+        "waterTank": true,
+        "generator": true,
+        "swimming": true,
+        "accessForDisabled": true
+      },
+      "address": "tika pardon 39",
+      "quartier": "Kintambo Village",
+      "commune": "Kintambo",
+      "district": "Lukunga",
+      "ville": "Kinshasa",
+      "images": [
+        "https://congondaku.s3.amazonaws.com/real-estate-listings/1747010303196-900283994.png",
+        "https://congondaku.s3.amazonaws.com/real-estate-listings/1747010303197-593378445.png"
+      ],
+      "features": [
+        "[\"lol\"]"
+      ],
+      "nearbyAmenities": [
+        "[\"mawa\"]"
+      ],
+      "isDeleted": false,
+      "isFeatured": false,
+      "status": "available",
+      "visibility": "public",
+      "createdBy": "6813376d4d6bc120cc617886",
+      "tags": [
+        "condo",
+        "daily",
+        "Kintambo",
+        "Kinshasa",
+        "8-bedroom",
+        "garden",
+        "furnished",
+        "swimming-pool",
+        "wifi",
+        "air-conditioning",
+        "security-system"
+      ],
+      "_id": "68214300d080518e8a3181fa",
+      "expiryDate": "2025-08-10T00:38:24.487Z",
+      "availableFrom": "2025-05-12T00:38:24.487Z",
+      "createdAt": "2025-05-12T00:38:24.495Z",
+      "updatedAt": "2025-05-12T00:38:24.495Z",
+      "title": "8-Bedroom Condo for Daily Rental in Kintambo",
+      "__v": 0,
+      "daysUntilExpiry": 90,
+      "listerFullName": "Mala Mala",
+      "id": "68214300d080518e8a3181fa"
+    }
+  }
+}
+2025-05-12T00:46:30.435Z info: Attempting to delete S3 file: real-estate-listings/1746991135806-520585512.jpg from bucket congondaku
+2025-05-12T00:46:30.464Z info: Attempting to delete S3 file: real-estate-listings/1746991136291-657941970.jpg from bucket congondaku
+2025-05-12T00:46:30.706Z info: Successfully deleted file from S3: real-estate-listings/1746991135806-520585512.jpg
+2025-05-12T00:46:30.707Z info: Successfully deleted file from S3: real-estate-listings/1746991136291-657941970.jpg
+2025-05-12T00:46:32.949Z info: Attempting to delete S3 file: real-estate-listings/1746991137560-388287263.jpg from bucket congondaku
+2025-05-12T00:46:32.953Z info: Attempting to delete S3 file: real-estate-listings/1746991137940-2018730.jpg from bucket congondaku
+2025-05-12T00:46:32.957Z info: Attempting to delete S3 file: real-estate-listings/1746991138417-964996646.jpg from bucket congondaku
+2025-05-12T00:46:33.132Z info: Successfully deleted file from S3: real-estate-listings/1746991137560-388287263.jpg
+2025-05-12T00:46:33.137Z info: Successfully deleted file from S3: real-estate-listings/1746991138417-964996646.jpg
+2025-05-12T00:46:33.145Z info: Successfully deleted file from S3: real-estate-listings/1746991137940-2018730.jpg
+2025-05-12T00:48:00.206Z info: ==== RECEIVED LISTING DATA ON SERVER ====
+2025-05-12T00:48:00.206Z info: {
+  "requestBody": {},
+  "files": "No files"
+}
+2025-05-12T00:48:00.261Z info: Listing API Request:
+2025-05-12T00:48:00.533Z info: Request body:
+2025-05-12T00:48:00.534Z info: Files:
+2025-05-12T00:48:00.608Z info: ==== DATABASE SAVED LISTING DATA ====
+2025-05-12T00:48:00.609Z info: {
+  "response": {
+    "success": true,
+    "message": "Listing created successfully",
+    "listing": {
+      "listerFirstName": "Papa",
+      "listerLastName": "Maman",
+      "listerEmailAddress": "pama@gmail.com",
+      "listerPhoneNumber": "0813248073",
+      "listerProfileImage": null,
+      "typeOfListing": "condo",
+      "listingType": "daily",
+      "priceDaily": 0,
+      "currency": "CDF",
+      "negotiable": true,
+      "details": {
+        "floor": 8,
+        "bedroom": 8,
+        "bathroom": 8,
+        "kitchen": 8,
+        "dinningRoom": 8,
+        "livingRoom": 8,
+        "parking": 8,
+        "area": 98889,
+        "garden": true,
+        "furnished": true,
+        "yearBuilt": 2020,
+        "wifi": true,
+        "airConditioner": true,
+        "security": true,
+        "solarPower": true,
+        "waterTank": true,
+        "generator": true,
+        "swimming": true,
+        "accessForDisabled": true
+      },
+      "address": "popo 879",
+      "quartier": "Cité Verte",
+      "commune": "Mont Ngafula",
+      "district": "Lukunga",
+      "ville": "Kinshasa",
+      "images": [
+        "https://congondaku.s3.amazonaws.com/real-estate-listings/1747010880266-572986350.jpg"
+      ],
+      "features": [
+        "papa"
+      ],
+      "nearbyAmenities": [
+        "mawa"
+      ],
+      "isDeleted": false,
+      "isFeatured": false,
+      "status": "available",
+      "visibility": "public",
+      "createdBy": "6813376d4d6bc120cc617886",
+      "tags": [
+        "condo",
+        "daily",
+        "Mont Ngafula",
+        "Kinshasa",
+        "8-bedroom",
+        "garden",
+        "furnished",
+        "swimming-pool",
+        "wifi",
+        "air-conditioning",
+        "security-system"
+      ],
+      "_id": "68214540d080518e8a31825b",
+      "expiryDate": "2025-08-10T00:48:00.536Z",
+      "availableFrom": "2025-05-12T00:48:00.536Z",
+      "createdAt": "2025-05-12T00:48:00.539Z",
+      "updatedAt": "2025-05-12T00:48:00.539Z",
+      "title": "8-Bedroom Condo for Daily Rental in Mont Ngafula",
+      "__v": 0,
+      "daysUntilExpiry": 90,
+      "listerFullName": "Papa Maman",
+      "id": "68214540d080518e8a31825b"
+    }
+  }
+}
+2025-05-12T00:57:08.095Z error: (node:69781) [MONGODB DRIVER] Warning: useNewUrlParser is a deprecated option: useNewUrlParser has no effect since Node.js Driver version 4.0.0 and will be removed in the next major version
+(Use `node --trace-warnings ...` to show where the warning was created)
+2025-05-12T00:57:08.097Z error: (node:69781) [MONGODB DRIVER] Warning: useUnifiedTopology is a deprecated option: useUnifiedTopology has no effect since Node.js Driver version 4.0.0 and will be removed in the next major version
+2025-05-12T00:57:08.920Z info: ✅ Connected to MongoDB
+2025-05-12T00:57:08.923Z info: 🚀 Server running on port 5002
+2025-05-12T00:57:13.373Z error: Error testing S3 connection: Missing credentials in config, if using AWS_CONFIG_FILE, set AWS_SDK_LOAD_CONFIG=1
+2025-05-12T00:57:47.263Z info: ==== RECEIVED LISTING DATA ON SERVER ====
+2025-05-12T00:57:47.264Z info: {
+  "requestBody": {},
+  "files": "No files"
+}
+2025-05-12T00:57:47.350Z info: Listing API Request:
+2025-05-12T00:57:47.760Z info: Request body:
+2025-05-12T00:57:47.760Z info: Files:
+2025-05-12T00:57:47.760Z info: Setting priceDaily to: 0
+2025-05-12T00:57:47.761Z info: Processed data before saving:
+2025-05-12T00:57:47.849Z info: Saved listing:
+2025-05-12T00:57:47.850Z info: ==== DATABASE SAVED LISTING DATA ====
+2025-05-12T00:57:47.850Z info: {
+  "response": {
+    "success": true,
+    "message": "Listing created successfully",
+    "listing": {
+      "listerFirstName": "Tata",
+      "listerLastName": "Zons",
+      "listerEmailAddress": "pona@gmail.com",
+      "listerPhoneNumber": "123489765",
+      "listerProfileImage": null,
+      "typeOfListing": "office",
+      "listingType": "daily",
+      "priceDaily": 0,
+      "currency": "CDF",
+      "negotiable": true,
+      "details": {
+        "floor": 9,
+        "bedroom": 9,
+        "bathroom": 9,
+        "kitchen": 9,
+        "dinningRoom": 9,
+        "livingRoom": 9,
+        "parking": 9,
+        "area": 99999,
+        "garden": true,
+        "furnished": true,
+        "yearBuilt": 2020,
+        "wifi": true,
+        "airConditioner": true,
+        "security": true,
+        "solarPower": true,
+        "waterTank": true,
+        "generator": true,
+        "swimming": true,
+        "accessForDisabled": true
+      },
+      "address": "oyo kaka 768",
+      "quartier": "Funa II",
+      "commune": "Barumbu",
+      "district": "Lukunga",
+      "ville": "Kinshasa",
+      "images": [
+        "https://congondaku.s3.amazonaws.com/real-estate-listings/1747011467352-925717126.jpg",
+        "https://congondaku.s3.amazonaws.com/real-estate-listings/1747011467352-921706435.png"
+      ],
+      "features": [
+        "lol"
+      ],
+      "nearbyAmenities": [],
+      "isDeleted": false,
+      "isFeatured": false,
+      "status": "available",
+      "visibility": "public",
+      "createdBy": "6813376d4d6bc120cc617886",
+      "tags": [
+        "office",
+        "daily",
+        "Barumbu",
+        "Kinshasa",
+        "9-bedroom",
+        "garden",
+        "furnished",
+        "swimming-pool",
+        "wifi",
+        "air-conditioning",
+        "security-system"
+      ],
+      "_id": "6821478bf634c9d72b3e97eb",
+      "expiryDate": "2025-08-10T00:57:47.773Z",
+      "availableFrom": "2025-05-12T00:57:47.773Z",
+      "createdAt": "2025-05-12T00:57:47.778Z",
+      "updatedAt": "2025-05-12T00:57:47.778Z",
+      "title": "9-Bedroom Office for Daily Rental in Barumbu",
+      "__v": 0,
+      "daysUntilExpiry": 90,
+      "listerFullName": "Tata Zons",
+      "id": "6821478bf634c9d72b3e97eb"
+    }
+  }
+}
+2025-05-12T01:02:17.644Z info: ==== RECEIVED LISTING DATA ON SERVER ====
+2025-05-12T01:02:17.646Z info: {
+  "requestBody": {},
+  "files": "No files"
+}
+2025-05-12T01:02:17.731Z info: Listing API Request:
+2025-05-12T01:02:18.025Z info: Request body:
+2025-05-12T01:02:18.025Z info: Files:
+2025-05-12T01:02:18.025Z info: Setting priceDaily to: 0
+2025-05-12T01:02:18.025Z info: Processed data before saving:
+2025-05-12T01:02:18.102Z info: Saved listing:
+2025-05-12T01:02:18.102Z info: ==== DATABASE SAVED LISTING DATA ====
+2025-05-12T01:02:18.102Z info: {
+  "response": {
+    "success": true,
+    "message": "Listing created successfully",
+    "listing": {
+      "listerFirstName": "Suka",
+      "listerLastName": "tala",
+      "listerEmailAddress": "tala@gmail.com",
+      "listerPhoneNumber": "9547165510",
+      "listerProfileImage": null,
+      "typeOfListing": "house",
+      "listingType": "daily",
+      "priceDaily": 0,
+      "currency": "USD",
+      "negotiable": true,
+      "details": {
+        "floor": 9,
+        "bedroom": 9,
+        "bathroom": 9,
+        "kitchen": 9,
+        "dinningRoom": 9,
+        "livingRoom": 9,
+        "parking": 9,
+        "area": 7899,
+        "garden": true,
+        "furnished": true,
+        "yearBuilt": 2020,
+        "wifi": true,
+        "airConditioner": true,
+        "security": true,
+        "solarPower": true,
+        "waterTank": true,
+        "generator": true,
+        "swimming": true,
+        "accessForDisabled": true
+      },
+      "address": "1220 Tamarack Cir 123",
+      "quartier": "Lingwala",
+      "commune": "Gombe",
+      "district": "Lukunga",
+      "ville": "Kinshasa",
+      "images": [
+        "https://congondaku.s3.amazonaws.com/real-estate-listings/1747011737735-538020558.jpg",
+        "https://congondaku.s3.amazonaws.com/real-estate-listings/1747011737736-798198661.png"
+      ],
+      "features": [
+        "omoni"
+      ],
+      "nearbyAmenities": [
+        "Hôpital"
+      ],
+      "isDeleted": false,
+      "isFeatured": false,
+      "status": "available",
+      "visibility": "public",
+      "createdBy": "6813376d4d6bc120cc617886",
+      "tags": [
+        "house",
+        "daily",
+        "Gombe",
+        "Kinshasa",
+        "9-bedroom",
+        "garden",
+        "furnished",
+        "swimming-pool",
+        "wifi",
+        "air-conditioning",
+        "security-system"
+      ],
+      "_id": "6821489af634c9d72b3e980a",
+      "expiryDate": "2025-08-10T01:02:18.029Z",
+      "availableFrom": "2025-05-12T01:02:18.029Z",
+      "createdAt": "2025-05-12T01:02:18.032Z",
+      "updatedAt": "2025-05-12T01:02:18.032Z",
+      "title": "9-Bedroom House for Daily Rental in Gombe",
+      "__v": 0,
+      "daysUntilExpiry": 90,
+      "listerFullName": "Suka tala",
+      "id": "6821489af634c9d72b3e980a"
+    }
+  }
+}
+2025-05-12T01:11:55.686Z info: Attempting to delete S3 file: real-estate-listings/1747011737735-538020558.jpg from bucket congondaku
+2025-05-12T01:11:55.722Z info: Attempting to delete S3 file: real-estate-listings/1747011737736-798198661.png from bucket congondaku
+2025-05-12T01:11:55.978Z info: Successfully deleted file from S3: real-estate-listings/1747011737735-538020558.jpg
+2025-05-12T01:11:55.986Z info: Successfully deleted file from S3: real-estate-listings/1747011737736-798198661.png
+2025-05-12T01:11:58.120Z info: Attempting to delete S3 file: real-estate-listings/1747011467352-925717126.jpg from bucket congondaku
+2025-05-12T01:11:58.123Z info: Attempting to delete S3 file: real-estate-listings/1747011467352-921706435.png from bucket congondaku
+2025-05-12T01:11:58.319Z info: Successfully deleted file from S3: real-estate-listings/1747011467352-925717126.jpg
+2025-05-12T01:11:58.321Z info: Successfully deleted file from S3: real-estate-listings/1747011467352-921706435.png
+2025-05-12T01:12:04.388Z info: Attempting to delete S3 file: real-estate-listings/1747010880266-572986350.jpg from bucket congondaku
+2025-05-12T01:12:04.605Z info: Successfully deleted file from S3: real-estate-listings/1747010880266-572986350.jpg
+2025-05-12T01:12:07.541Z info: Attempting to delete S3 file: real-estate-listings/1747010303196-900283994.png from bucket congondaku
+2025-05-12T01:12:07.545Z info: Attempting to delete S3 file: real-estate-listings/1747010303197-593378445.png from bucket congondaku
+2025-05-12T01:12:07.720Z info: Successfully deleted file from S3: real-estate-listings/1747010303196-900283994.png
+2025-05-12T01:12:07.739Z info: Successfully deleted file from S3: real-estate-listings/1747010303197-593378445.png
+2025-05-12T01:12:09.957Z info: Attempting to delete S3 file: real-estate-listings/1747007930117-88820032.jpg from bucket congondaku
+2025-05-12T01:12:10.151Z info: Successfully deleted file from S3: real-estate-listings/1747007930117-88820032.jpg
+2025-05-12T01:14:31.357Z info: Attempting to delete S3 file: real-estate-listings/1746998128793-695770465.jpg from bucket congondaku
+2025-05-12T01:14:31.363Z info: Attempting to delete S3 file: real-estate-listings/1746998183745-371753559.png from bucket congondaku
+2025-05-12T01:14:31.582Z info: Successfully deleted file from S3: real-estate-listings/1746998128793-695770465.jpg
+2025-05-12T01:14:31.595Z info: Successfully deleted file from S3: real-estate-listings/1746998183745-371753559.png
+2025-05-12T01:14:34.783Z info: Attempting to delete S3 file: real-estate-listings/1746995933776-822983449.jpg from bucket congondaku
+2025-05-12T01:14:34.787Z info: Attempting to delete S3 file: real-estate-listings/1746995933778-426222543.jpeg from bucket congondaku
+2025-05-12T01:14:34.966Z info: Successfully deleted file from S3: real-estate-listings/1746995933776-822983449.jpg
+2025-05-12T01:14:34.977Z info: Successfully deleted file from S3: real-estate-listings/1746995933778-426222543.jpeg
+2025-05-12T01:17:08.893Z info: ==== RECEIVED LISTING DATA ON SERVER ====
+2025-05-12T01:17:08.895Z info: {
+  "requestBody": {},
+  "files": "No files"
+}
+2025-05-12T01:17:08.950Z info: Listing API Request:
+2025-05-12T01:17:09.231Z info: Request body:
+2025-05-12T01:17:09.231Z info: Files:
+2025-05-12T01:17:09.231Z info: Setting priceDaily to: 0
+2025-05-12T01:17:09.232Z info: Processed data before saving:
+2025-05-12T01:17:09.323Z info: Saved listing:
+2025-05-12T01:17:09.323Z info: ==== DATABASE SAVED LISTING DATA ====
+2025-05-12T01:17:09.323Z info: {
+  "response": {
+    "success": true,
+    "message": "Listing created successfully",
+    "listing": {
+      "listerFirstName": "hkghjf",
+      "listerLastName": "fdsgdhj",
+      "listerEmailAddress": "fdsgh@sadf.com",
+      "listerPhoneNumber": "5467686785",
+      "listerProfileImage": null,
+      "typeOfListing": "house",
+      "listingType": "daily",
+      "priceDaily": 0,
+      "currency": "EUR",
+      "negotiable": true,
+      "details": {
+        "floor": 4,
+        "bedroom": 3,
+        "bathroom": 3,
+        "kitchen": 3,
+        "dinningRoom": 3,
+        "livingRoom": 3,
+        "parking": 4,
+        "area": 3,
+        "garden": true,
+        "furnished": true,
+        "yearBuilt": 2020,
+        "wifi": true,
+        "airConditioner": true,
+        "security": true,
+        "solarPower": true,
+        "waterTank": true,
+        "generator": true,
+        "swimming": true,
+        "accessForDisabled": true
+      },
+      "address": "967 boston way apt 467",
+      "quartier": "Gambela",
+      "commune": "Kinshasa",
+      "district": "Lukunga",
+      "ville": "Kinshasa",
+      "images": [
+        "https://congondaku.s3.amazonaws.com/real-estate-listings/1747012628955-548562858.jpg",
+        "https://congondaku.s3.amazonaws.com/real-estate-listings/1747012628955-212784822.png"
+      ],
+      "features": [],
+      "nearbyAmenities": [],
+      "isDeleted": false,
+      "isFeatured": false,
+      "status": "available",
+      "visibility": "public",
+      "createdBy": "6813376d4d6bc120cc617886",
+      "tags": [
+        "house",
+        "daily",
+        "Kinshasa",
+        "Kinshasa",
+        "3-bedroom",
+        "garden",
+        "furnished",
+        "swimming-pool",
+        "wifi",
+        "air-conditioning",
+        "security-system"
+      ],
+      "_id": "68214c15f634c9d72b3e987d",
+      "expiryDate": "2025-08-10T01:17:09.244Z",
+      "availableFrom": "2025-05-12T01:17:09.244Z",
+      "createdAt": "2025-05-12T01:17:09.247Z",
+      "updatedAt": "2025-05-12T01:17:09.247Z",
+      "title": "3-Bedroom House for Daily Rental in Kinshasa",
+      "__v": 0,
+      "daysUntilExpiry": 90,
+      "listerFullName": "hkghjf fdsgdhj",
+      "id": "68214c15f634c9d72b3e987d"
+    }
+  }
+}
+2025-05-12T01:29:39.443Z info: ==== RECEIVED LISTING DATA ON SERVER ====
+2025-05-12T01:29:39.445Z info: {
+  "requestBody": {},
+  "files": "No files"
+}
+2025-05-12T01:29:39.502Z info: Listing API Request:
+2025-05-12T01:29:39.854Z info: Request body:
+2025-05-12T01:29:39.854Z info: Files:
+2025-05-12T01:29:39.854Z info: Setting priceDaily to: 400
+2025-05-12T01:29:39.855Z info: Processed data before saving:
+2025-05-12T01:29:39.945Z error: Add listing error details: E11000 duplicate key error collection: NdakuData.listings index: address_1 dup key: { address: "100 1st Ave NE" }
+2025-05-12T01:29:39.946Z error: API Error (500) at POST /api/listings/add
+2025-05-12T01:29:39.946Z info: ==== DATABASE SAVED LISTING DATA ====
+2025-05-12T01:29:39.946Z info: {
+  "response": {
+    "success": false,
+    "message": "Internal server error",
+    "error": "E11000 duplicate key error collection: NdakuData.listings index: address_1 dup key: { address: \"100 1st Ave NE\" }"
+  }
+}
+2025-05-12T01:30:37.467Z info: ==== RECEIVED LISTING DATA ON SERVER ====
+2025-05-12T01:30:37.468Z info: {
+  "requestBody": {},
+  "files": "No files"
+}
+2025-05-12T01:30:37.525Z info: Listing API Request:
+2025-05-12T01:30:37.856Z info: Request body:
+2025-05-12T01:30:37.856Z info: Files:
+2025-05-12T01:30:37.856Z info: Setting priceDaily to: 400
+2025-05-12T01:30:37.857Z info: Processed data before saving:
+2025-05-12T01:30:37.919Z info: Saved listing:
+2025-05-12T01:30:37.919Z info: ==== DATABASE SAVED LISTING DATA ====
+2025-05-12T01:30:37.920Z info: {
+  "response": {
+    "success": true,
+    "message": "Listing created successfully",
+    "listing": {
+      "listerFirstName": "Youssouf",
+      "listerLastName": "Yogue",
+      "listerEmailAddress": "yousyogue1@gmail.com",
+      "listerPhoneNumber": "9995292930",
+      "listerProfileImage": null,
+      "typeOfListing": "office",
+      "listingType": "daily",
+      "priceDaily": 400,
+      "currency": "USD",
+      "negotiable": true,
+      "details": {
+        "floor": 8,
+        "bedroom": 8,
+        "bathroom": 8,
+        "kitchen": 8,
+        "dinningRoom": 8,
+        "livingRoom": 8,
+        "parking": 8,
+        "area": 88888,
+        "garden": true,
+        "furnished": true,
+        "yearBuilt": 2020,
+        "wifi": true,
+        "airConditioner": true,
+        "security": true,
+        "solarPower": true,
+        "waterTank": true,
+        "generator": true,
+        "swimming": true,
+        "accessForDisabled": true
+      },
+      "address": "100 1st Ave NE 7879",
+      "quartier": "Haut Commandement",
+      "commune": "Gombe",
+      "district": "Lukunga",
+      "ville": "Kinshasa",
+      "images": [
+        "https://congondaku.s3.amazonaws.com/real-estate-listings/1747013437531-821666863.jpg",
+        "https://congondaku.s3.amazonaws.com/real-estate-listings/1747013437533-468493877.png"
+      ],
+      "description": "",
+      "features": [
+        "kjd"
+      ],
+      "nearbyAmenities": [
+        "dd"
+      ],
+      "isDeleted": false,
+      "isFeatured": false,
+      "status": "available",
+      "visibility": "public",
+      "createdBy": "6813376d4d6bc120cc617886",
+      "tags": [
+        "office",
+        "daily",
+        "Gombe",
+        "Kinshasa",
+        "8-bedroom",
+        "garden",
+        "furnished",
+        "swimming-pool",
+        "wifi",
+        "air-conditioning",
+        "security-system"
+      ],
+      "_id": "68214f3df634c9d72b3e9891",
+      "expiryDate": "2025-08-10T01:30:37.859Z",
+      "availableFrom": "2025-05-12T01:30:37.860Z",
+      "createdAt": "2025-05-12T01:30:37.861Z",
+      "updatedAt": "2025-05-12T01:30:37.861Z",
+      "title": "8-Bedroom Office for Daily Rental in Gombe",
+      "__v": 0,
+      "daysUntilExpiry": 90,
+      "listerFullName": "Youssouf Yogue",
+      "id": "68214f3df634c9d72b3e9891"
+    }
+  }
+}
+2025-05-12T01:36:34.932Z error: API Error (404) at GET /api/listings/68210adef0aede0927d6e820
+2025-05-12T01:36:53.422Z info: Login attempt with email:
+2025-05-12T01:36:53.473Z info: Found user:
+2025-05-12T01:36:57.370Z info: Login attempt with email:
+2025-05-12T01:36:57.426Z info: Found user:
+2025-05-12T01:37:06.839Z info: Login attempt with email:
+2025-05-12T01:37:06.893Z info: Found user:
+2025-05-12T01:37:14.758Z info: Login attempt with email:
+2025-05-12T01:37:14.811Z info: Found user:
+2025-05-12T01:37:24.542Z info: Login attempt with email:
+2025-05-12T01:37:24.594Z info: Found user:
+2025-05-12T02:31:18.642Z error: API Error (404) at GET /api/listings/68210adef0aede0927d6e820
