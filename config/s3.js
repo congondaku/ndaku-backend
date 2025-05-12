@@ -5,8 +5,8 @@ const path = require('path');
 
 // Load environment variables
 const awsAccessKeyId = process.env.AWS_ACCESS_KEY_ID_I;
-const awsSecretAccessKey = process.env.AWS_SECRET_ACCESS_KEY;
-const awsRegion = process.env.AWS_REGION || 'us-east-1';
+const awsSecretAccessKey = process.env.AWS_SECRET_ACCESS_KEY_K;
+const awsRegion = process.env.AWS_REGION_N || 'us-east-1';
 const bucketName = process.env.AWS_S3_BUCKET_NAME || 'congondaku';
 
 // Log AWS config for debugging (remove in production)
