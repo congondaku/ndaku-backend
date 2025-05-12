@@ -1,4 +1,3 @@
-// Enhanced version of listing model with additional features
 const mongoose = require('mongoose');
 
 const listingSchema = new mongoose.Schema({
@@ -68,7 +67,6 @@ const listingSchema = new mongoose.Schema({
     default: false
   },
   
-  // Detailed property information
   details: {
     floor: { type: Number, default: 0, min: 0 },
     bedroom: { type: Number, default: 0, min: 0 },
@@ -77,17 +75,17 @@ const listingSchema = new mongoose.Schema({
     dinningRoom: { type: Number, default: 0, min: 0 },
     livingRoom: { type: Number, default: 1, min: 0 },
     parking: { type: Number, default: 0, min: 0 },
+    area: { type: Number, min: 0 },
     garden: { type: Boolean, default: false },
     furnished: { type: Boolean, default: false },
-    propertySize: { type: Number, min: 0 }, // Size in square meters
     yearBuilt: { type: Number },
     wifi: { type: Boolean, default: false },
-    airConditioning: { type: Boolean, default: false },
-    securitySystem: { type: Boolean, default: false },
+    airConditioner: { type: Boolean, default: false },
+    security: { type: Boolean, default: false },
     solarPower: { type: Boolean, default: false },
     waterTank: { type: Boolean, default: false },
     generator: { type: Boolean, default: false },
-    pool: { type: Boolean, default: false },
+    swimming: { type: Boolean, default: false },
     accessForDisabled: { type: Boolean, default: false }
   },
   
@@ -117,30 +115,12 @@ const listingSchema = new mongoose.Schema({
     required: [true, 'City is required'],
     trim: true
   },
-  latitude: {
-    type: Number,
-    min: -90,
-    max: 90
-  },
-  longitude: {
-    type: Number,
-    min: -180,
-    max: 180
-  },
-  
+
   // Media content
   images: { 
     type: [String], 
     required: [true, 'At least one image is required'],
     validate: [array => array.length > 0, 'At least one image is required']
-  },
-  videos: {
-    type: [String],
-    default: []
-  },
-  virtualTour: {
-    type: String,
-    default: null
   },
   
   // Additional listing content
@@ -196,12 +176,6 @@ const listingSchema = new mongoose.Schema({
     ref: 'User',
     required: true
   },
-  
-  // Optional fields for SEO enhancement
-  seoDescription: {
-    type: String,
-    maxlength: [160, 'SEO description cannot be more than 160 characters']
-  },
   tags: {
     type: [String],
     default: []
@@ -228,13 +202,23 @@ listingSchema.pre('save', function(next) {
   
   // Auto-generate tags if none provided
   if (!this.tags || this.tags.length === 0) {
-    this.tags = [
+    const tags = [
       this.typeOfListing,
       this.listingType,
       this.commune,
       this.ville,
       `${this.details?.bedroom || 0}-bedroom`
-    ].filter(tag => tag); // Filter out any undefined or empty values
+    ];
+    
+    // Add feature-based tags
+    if (this.details?.garden) tags.push('garden');
+    if (this.details?.furnished) tags.push('furnished');
+    if (this.details?.swimming) tags.push('swimming-pool');
+    if (this.details?.wifi) tags.push('wifi');
+    if (this.details?.airConditioner) tags.push('air-conditioning');
+    if (this.details?.security) tags.push('security-system');
+    
+    this.tags = tags.filter(tag => tag); // Filter out any undefined or empty values
   }
   
   // Auto-generate title if not provided
@@ -290,6 +274,7 @@ listingSchema.index({ commune: 1, typeOfListing: 1 });
 listingSchema.index({ ville: 1 });
 listingSchema.index({ priceMonthly: 1 });
 listingSchema.index({ priceSale: 1 });
+listingSchema.index({ priceDaily: 1 });
 listingSchema.index({ createdBy: 1 });
 listingSchema.index({ isDeleted: 1, status: 1 });
 listingSchema.index({ 'details.bedroom': 1 });
