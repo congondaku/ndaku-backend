@@ -162,7 +162,7 @@ if (process.env.NODE_ENV === "production") {
 }
 
 // Database & Server connection
-const PORT = process.env.PORT || 5001;
+const PORT = process.env.PORT || 3000;
 const MONGO_URI = process.env.MONGODB_URI;
 
 // Add error handling for uncaught exceptions
