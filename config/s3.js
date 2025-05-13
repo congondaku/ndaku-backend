@@ -1,54 +1,14 @@
-// config/s3.js
 const AWS = require('aws-sdk');
 const multerS3 = require('multer-s3');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 
-// Make sure dotenv is loaded
-const dotenv = require('dotenv');
-dotenv.config({ path: path.resolve(__dirname, '../.env') });
-
-// Force reload AWS credentials from .env file directly
-let awsAccessKeyId, awsSecretAccessKey, awsRegion, bucketName;
-
-try {
-  // Try to read directly from .env file
-  const envPath = path.resolve(__dirname, '../.env');
-  if (fs.existsSync(envPath)) {
-    const envContent = fs.readFileSync(envPath, 'utf8');
-    const lines = envContent.split('\n');
-    
-    lines.forEach(line => {
-      if (line.startsWith('AWS_ACCESS_KEY_ID=')) {
-        awsAccessKeyId = line.split('=')[1].trim();
-      } else if (line.startsWith('AWS_SECRET_ACCESS_KEY=')) {
-        awsSecretAccessKey = line.split('=')[1].trim();
-      } else if (line.startsWith('AWS_REGION=')) {
-        awsRegion = line.split('=')[1].trim();
-      } else if (line.startsWith('AWS_S3_BUCKET_NAME=')) {
-        bucketName = line.split('=')[1].trim();
-      }
-    });
-    
-    console.log('AWS credentials loaded directly from .env file');
-  }
-} catch (err) {
-  console.error('Error reading .env file directly:', err.message);
-}
-
-// Fallback to process.env if direct reading failed
-awsAccessKeyId = awsAccessKeyId || process.env.AWS_ACCESS_KEY_ID;
-awsSecretAccessKey = awsSecretAccessKey || process.env.AWS_SECRET_ACCESS_KEY;
-awsRegion = awsRegion || process.env.AWS_REGION || 'us-east-1';
-bucketName = bucketName || process.env.AWS_S3_BUCKET_NAME || 'congondaku';
-
-// Check for missing credentials - REMOVED hardcoded values
-if (!awsAccessKeyId || !awsSecretAccessKey) {
-  console.error('⚠️ WARNING: AWS credentials not found in environment variables!');
-  console.error('Please ensure AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY are set in your .env file');
-  console.error('Uploads may fail or fall back to local storage');
-}
+// Load from environment variables only - no file reading
+const awsAccessKeyId = process.env.AWS_ACCESS_KEY_ID;
+const awsSecretAccessKey = process.env.AWS_SECRET_ACCESS_KEY;
+const awsRegion = process.env.AWS_REGION || 'us-east-1';
+const bucketName = process.env.AWS_S3_BUCKET_NAME || 'congondaku';
 
 // Log AWS config for debugging (without revealing actual credentials)
 console.log('AWS Config:', {
@@ -58,6 +18,12 @@ console.log('AWS Config:', {
   bucket: bucketName
 });
 
+// Check for missing credentials
+if (!awsAccessKeyId || !awsSecretAccessKey) {
+  console.warn('⚠️ WARNING: AWS credentials not found in environment variables!');
+  console.warn('Uploads may fall back to local storage');
+}
+
 // Create S3 service object with explicit credentials
 const s3 = new AWS.S3({
   accessKeyId: awsAccessKeyId,
@@ -65,7 +31,7 @@ const s3 = new AWS.S3({
   region: awsRegion
 });
 
-// Test S3 connection
+// Test S3 connection on startup
 s3.listBuckets((err, data) => {
   if (err) {
     console.error('Error testing S3 connection:', err);
@@ -114,24 +80,26 @@ const fileFilter = (req, file, cb) => {
   }
 };
 
-// Create multer upload with primary and fallback storage
+// Create multer upload with better error handling
 let upload;
 try {
-  upload = multer({
-    storage: storage,
-    limits: {
-      fileSize: 5 * 1024 * 1024 // 5 MB
-    },
-    fileFilter: fileFilter
-  });
-  console.log('S3 storage configured for uploads');
+  // Check if we have AWS credentials before trying to set up S3 storage
+  if (awsAccessKeyId && awsSecretAccessKey) {
+    upload = multer({
+      storage: storage,
+      limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB
+      fileFilter: fileFilter
+    });
+    console.log('S3 storage configured for uploads');
+  } else {
+    throw new Error('AWS credentials missing, falling back to disk storage');
+  }
 } catch (err) {
-  console.error('Error configuring S3 storage, falling back to disk storage:', err);
+  console.error('Error configuring S3 storage:', err);
+  console.log('Falling back to disk storage for uploads');
   upload = multer({
     storage: diskStorage,
-    limits: {
-      fileSize: 5 * 1024 * 1024 // 5 MB
-    },
+    limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB
     fileFilter: fileFilter
   });
 }
@@ -139,34 +107,42 @@ try {
 // Function to delete a file from S3
 const deleteFileFromS3 = async (fileUrl) => {
   try {
-    if (!fileUrl) return false;
-    
-    // Extract key from S3 URL
-    let key = '';
-    if (fileUrl.includes(bucketName)) {
-      const urlParts = fileUrl.split('/');
-      const bucketIndex = urlParts.findIndex(part => part === bucketName || part.includes(bucketName));
-      if (bucketIndex >= 0) {
-        key = urlParts.slice(bucketIndex + 1).join('/');
-      }
+    if (!fileUrl) {
+      console.warn('No file URL provided for S3 deletion');
+      return false;
     }
+    
+    // Simple URL parsing - just get everything after the bucket name
+    const urlParts = fileUrl.split('/');
+    const bucketIndex = urlParts.findIndex(part => 
+      part === bucketName || part.includes('.s3.') || part.includes('amazonaws.com')
+    );
+    
+    // Extract the key
+    const key = urlParts.slice(bucketIndex + 1).join('/');
     
     if (!key) {
       console.warn('Could not parse S3 URL:', fileUrl);
       return false;
     }
     
-    console.log(`Attempting to delete S3 file: ${key} from bucket ${bucketName}`);
+    console.log(`Deleting from S3: bucket=${bucketName}, key=${key}`);
     
-    await s3.deleteObject({
+    const result = await s3.deleteObject({
       Bucket: bucketName,
       Key: key
     }).promise();
     
-    console.log(`Successfully deleted file from S3: ${key}`);
+    console.log('S3 deletion successful, result:', result);
     return true;
   } catch (error) {
-    console.error('Error deleting file from S3:', error);
+    console.error('S3 deletion error:', {
+      message: error.message,
+      code: error.code,
+      stack: error.stack,
+      fileUrl
+    });
+    // Return false but don't throw - we don't want to break the update flow
     return false;
   }
 };
