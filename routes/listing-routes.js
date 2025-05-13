@@ -5,23 +5,8 @@ const listingController = require('../controllers/listing-controller');
 const locationData = require('../utils/locationData');
 const villesData = require('../utils/villesData');
 const multer = require('multer');
-const { storage } = require('../config/cloudinary');
+const { upload, s3 } = require('../config/s3'); // Updated to use s3 config
 const Listing = require('../models/Listing');
-
-/**
- * Configure multer for file uploads
- */
-const upload = multer({
-  storage,
-  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
-  fileFilter: (req, file, cb) => {
-    if (file.mimetype.startsWith('image/')) {
-      cb(null, true);
-    } else {
-      cb(new Error('Only image files are allowed!'), false);
-    }
-  }
-});
 
 /**
  * Middleware to handle multer errors
@@ -31,7 +16,7 @@ const handleMulterError = (err, req, res, next) => {
     return res.status(400).json({
       success: false,
       message: err.code === 'LIMIT_FILE_SIZE' 
-        ? 'File too large (max 10MB)' 
+        ? 'File too large (max 5MB)' 
         : `Upload error: ${err.message}`
     });
   } else if (err) {
@@ -127,6 +112,16 @@ router.get('/locations/:cityName', (req, res) => {
   }
 });
 
+const handleS3Error = (req, res, next) => {
+  if (req.awsError) {
+    return res.status(400).json({
+      success: false,
+      message: req.awsError
+    });
+  }
+  next();
+};
+
 // Get single listing
 router.get('/:id', listingController.getListing);
 
@@ -136,21 +131,51 @@ router.use(authenticate); // All routes after this require authentication
 // Get current user's listings
 router.get('/user/current', listingController.getMyListings);
 
-// Create new listing
+// Create new listing - using AWS S3 upload
 router.post(
   '/add',
   logRequest,
-  upload.array('images', 10),
-  handleMulterError,
+  (req, res, next) => {
+    try {
+      upload.array('images', 10)(req, res, (err) => {
+        if (err) {
+          if (err.message === 'The AWS Access Key Id you provided does not exist in our records.') {
+            req.awsError = 'AWS S3 connection error: ' + err.message;
+            return next();
+          }
+          return handleMulterError(err, req, res, next);
+        }
+        next();
+      });
+    } catch (err) {
+      req.awsError = 'Upload error: ' + err.message;
+      next();
+    }
+  },
+  handleS3Error,
   processListingData,
   listingController.addListing
 );
 
-// Update existing listing
+router.get('/test-aws', async (req, res) => {
+  try {
+    const { s3 } = require('../config/s3');
+    const result = await s3.listBuckets().promise();
+    return res.json({ success: true, buckets: result.Buckets.map(b => b.Name) });
+  } catch (error) {
+    console.error('AWS Error:', error);
+    return res.status(500).json({ 
+      success: false, 
+      error: error.message,
+      stack: error.stack
+    });
+  }
+});
+// Update existing listing - using AWS S3 upload
 router.put(
   '/update/:id',
   logRequest,
-  upload.array('images', 10),
+  upload.array('images', 10), // This now uses the S3 upload middleware
   handleMulterError,
   listingController.updateListing
 );
@@ -208,4 +233,3 @@ router.patch('/:id/toggle-status', listingController.togglePublishStatus);
 router.delete('/:id', listingController.deleteListing);
 
 module.exports = router;
-

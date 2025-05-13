@@ -21,3 +21,10 @@ services:
         sync: false
       - key: JWT_SECRET
         sync: false
+      - key: MY_AWS_ACCESS_KEY_ID
+        sync: false
+      - key: MY_AWS_SECRET_ACCESS_KEY
+        sync: false
+      - key: MY_AWS_REGION
+      - key: MY_S3_BUCKET_NAME
+        sync: false
