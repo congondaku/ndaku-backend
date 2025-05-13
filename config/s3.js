@@ -6,13 +6,13 @@ const path = require('path');
 const fs = require('fs');
 
 // Force AWS SDK to load credentials from environment variables
-process.env.AWS_SDK_LOAD_CONFIG = "1";
+process.env.MY_SDK_LOAD_CONFIG = "1";
 
 // Set AWS credentials explicitly before requiring the SDK
 AWS.config.update({
-  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-  region: process.env.AWS_REGION || 'us-east-1'
+  accessKeyId: process.env.MY_AWS_ACCESS_KEY_ID,
+  secretAccessKey: process.env.MY_AWS_ACCESS_KEY_ID,
+  region: process.env.MY_AWS_REGION || 'us-east-1'
 });
 
 // Set default region if not specified
@@ -20,23 +20,23 @@ if (!AWS.config.region) {
   AWS.config.region = 'us-east-1';
 }
 
-const bucketName = process.env.AWS_S3_BUCKET_NAME || 'congondaku';
+const bucketName = process.env.MY_S3_BUCKET_NAME || 'congondaku';
 
 // Log AWS config for debugging (without revealing actual credentials)
 console.log('AWS SDK Configuration:', {
-  accessKeyExists: !!process.env.AWS_ACCESS_KEY_ID,
-  secretKeyExists: !!process.env.AWS_SECRET_ACCESS_KEY,
+  accessKeyExists: !!process.env.MY_AWS_ACCESS_KEY_ID,
+  secretKeyExists: !!process.env.MY_AWS_ACCESS_KEY_ID,
   region: AWS.config.region,
   bucket: bucketName,
-  sdkLoadConfig: process.env.AWS_SDK_LOAD_CONFIG,
+  sdkLoadConfig: process.env.MY_SDK_LOAD_CONFIG,
   sdkVersion: AWS.VERSION
 });
 
 // Create S3 service object with credentials directly from constructor
 const s3 = new AWS.S3({
   credentials: new AWS.Credentials({
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
+    accessKeyId: process.env.MY_AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.MY_AWS_ACCESS_KEY_ID
   }),
   region: AWS.config.region
 });
@@ -110,8 +110,8 @@ const fileFilter = (req, file, cb) => {
 };
 
 // Determine if we have valid AWS credentials
-const hasValidAwsCredentials = !!process.env.AWS_ACCESS_KEY_ID && 
-                               !!process.env.AWS_SECRET_ACCESS_KEY;
+const hasValidAwsCredentials = !!process.env.MY_AWS_ACCESS_KEY_ID && 
+                               !!process.env.MY_AWS_ACCESS_KEY_ID;
 
 // Create multer upload instance
 let upload;
@@ -158,10 +158,10 @@ const deleteFileFromS3 = async (fileUrl) => {
       // Create a new S3 instance with explicit credentials for this operation
       const s3Op = new AWS.S3({
         credentials: new AWS.Credentials({
-          accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-          secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
+          accessKeyId: process.env.MY_AWS_ACCESS_KEY_ID,
+          secretAccessKey: process.env.MY_AWS_ACCESS_KEY_ID
         }),
-        region: process.env.AWS_REGION || 'us-east-1'
+        region: process.env.MY_AWS_REGION || 'us-east-1'
       });
 
       // Extract the key using URL parsing

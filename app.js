@@ -9,8 +9,8 @@ console.log("Environment variables loaded:");
 console.log("NODE_ENV:", process.env.NODE_ENV);
 console.log(
   "AWS Keys present:",
-  !!process.env.AWS_ACCESS_KEY_ID,
-  !!process.env.AWS_SECRET_ACCESS_KEY
+  !!process.env.MY_AWS_ACCESS_KEY_ID,
+  !!process.env.MY_AWS_ACCESS_KEY_ID
 );
 
 // Rest of your imports

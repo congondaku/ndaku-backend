@@ -617,11 +617,11 @@ const updateListing = async (req, res) => {
       }
 
       console.log('AWS Environment Check:', {
-        AWS_ACCESS_KEY_ID_exists: !!process.env.AWS_ACCESS_KEY_ID,
-        AWS_SECRET_ACCESS_KEY_exists: !!process.env.AWS_SECRET_ACCESS_KEY,
-        AWS_REGION: process.env.AWS_REGION,
-        AWS_S3_BUCKET_NAME: process.env.AWS_S3_BUCKET_NAME,
-        AWS_SDK_LOAD_CONFIG: process.env.AWS_SDK_LOAD_CONFIG,
+        AWS_ACCESS_KEY_ID_exists: !!process.env.MY_AWS_ACCESS_KEY_ID,
+        AWS_SECRET_ACCESS_KEY_exists: !!process.env.MY_AWS_ACCESS_KEY_ID,
+        MY_AWS_REGION: process.env.MY_AWS_REGION,
+        MY_S3_BUCKET_NAME: process.env.MY_S3_BUCKET_NAME,
+        MY_SDK_LOAD_CONFIG: process.env.MY_SDK_LOAD_CONFIG,
         removedImagesCount: removedImages.length
       });
 
