@@ -533,11 +533,26 @@ const getMyListings = async (req, res) => {
       }
     });
   } catch (error) {
-    logger.error('Error getting user listings:', error);
-    res.status(500).json({
+    // Log extensive details about the error
+    console.error('CRITICAL UPDATE ERROR:', {
+      error: error.message,
+      stack: error.stack,
+      name: error.name,
+      code: error.code || 'no_code',
+      listingId: id,
+      userId: req.user ? req.user._id : 'unknown',
+      bodyKeys: Object.keys(req.body),
+      removedImagesPresent: !!req.body.removedImages,
+      filesPresent: !!(req.files && req.files.length)
+    });
+    
+    // Return a more detailed error response
+    return res.status(500).json({
       success: false,
-      message: 'Failed to fetch your listings',
-      error: error.message
+      error: 'Failed to update listing',
+      errorType: error.name,
+      errorCode: error.code,
+      details: error.message
     });
   }
 };
