@@ -42,7 +42,7 @@ const addListing = async (req, res) => {
         message: "Error connecting to AWS S3: " + req.awsError
       });
     }
-    
+
     // Validate required fields
     const validation = validateListingData(req.body);
     if (!validation.isValid) {
@@ -76,20 +76,20 @@ const addListing = async (req, res) => {
           })
         )
       );
-      
+
       // Clean up uploaded files
       req.files.forEach(file => {
         if (fs.existsSync(file.path)) {
           fs.unlinkSync(file.path);
         }
       });
-      
+
       imageUrls = uploadResults.map(img => img.secure_url);
     }
-    
+
     // Create a processed data object for the listing
     const processedData = { ...req.body };
-    
+
     // Parse details if provided as string
     if (req.body.details) {
       try {
@@ -117,7 +117,7 @@ const addListing = async (req, res) => {
         }
       }
     });
-    
+
     if (features.length > 0) {
       processedData.features = features;
     } else if (req.body.features) {
@@ -132,7 +132,7 @@ const addListing = async (req, res) => {
         processedData.features = [];
       }
     }
-    
+
     // Process amenities array - handle array notation from form data
     const amenities = [];
     Object.keys(req.body).forEach(key => {
@@ -144,7 +144,7 @@ const addListing = async (req, res) => {
         }
       }
     });
-    
+
     if (amenities.length > 0) {
       processedData.nearbyAmenities = amenities;
     } else if (req.body.nearbyAmenities) {
@@ -169,10 +169,10 @@ const addListing = async (req, res) => {
     // Helper function to convert price fields to numbers
     const getNumericPrice = (value) => {
       if (!value) return undefined;
-      
+
       // If it's already a number, return it
       if (typeof value === 'number') return value;
-      
+
       // Try to convert string to number
       const numValue = parseFloat(value);
       return isNaN(numValue) ? 0 : numValue;
@@ -188,13 +188,13 @@ const addListing = async (req, res) => {
       } else if (req.body.price) {
         processedData.priceSale = getNumericPrice(req.body.price);
       }
-      
+
       // Ensure other price fields are undefined (not just 0)
       processedData.priceMonthly = undefined;
       processedData.priceDaily = undefined;
-      
+
       console.log(`Setting priceSale to: ${processedData.priceSale}`);
-      
+
     } else if (req.body.listingType === 'rent') {
       // For rent listings
       if (req.body.priceMonthly) {
@@ -204,13 +204,13 @@ const addListing = async (req, res) => {
       } else if (req.body.price) {
         processedData.priceMonthly = getNumericPrice(req.body.price);
       }
-      
+
       // Ensure other price fields are undefined (not just 0)
       processedData.priceSale = undefined;
       processedData.priceDaily = undefined;
-      
+
       console.log(`Setting priceMonthly to: ${processedData.priceMonthly}`);
-      
+
     } else if (req.body.listingType === 'daily') {
       // For daily listings
       if (req.body.priceDaily) {
@@ -220,14 +220,14 @@ const addListing = async (req, res) => {
       } else if (req.body.price) {
         processedData.priceDaily = getNumericPrice(req.body.price);
       }
-      
+
       // Ensure other price fields are undefined (not just 0)
       processedData.priceSale = undefined;
       processedData.priceMonthly = undefined;
-      
+
       console.log(`Setting priceDaily to: ${processedData.priceDaily}`);
     }
-    
+
     // Clean up debug fields to avoid saving them to the database
     delete processedData.debugPriceSale;
     delete processedData.debugPriceMonthly;
@@ -236,18 +236,18 @@ const addListing = async (req, res) => {
 
     // Add images to the processed data
     processedData.images = imageUrls;
-    
+
     // Add user info and ensure listing is not deleted by default
     processedData.createdBy = req.user._id;
     processedData.isDeleted = false;
-    
+
     // Log the processed data right before saving
     console.log("Processed data before saving:", JSON.stringify(processedData, null, 2));
 
     // Create and save the listing
     const newListing = new Listing(processedData);
     const savedListing = await newListing.save();
-    
+
     console.log("Saved listing:", JSON.stringify(savedListing, null, 2));
 
     return res.status(201).json({
@@ -289,7 +289,7 @@ const getAllListings = async (req, res) => {
     // Extract pagination parameters
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
-    const maxLimit = 50; 
+    const maxLimit = 50;
     const actualLimit = Math.min(limit, maxLimit);
     const skip = (page - 1) * actualLimit;
 
@@ -316,11 +316,11 @@ const getAllListings = async (req, res) => {
     if (commune) filter.commune = commune;
     if (ville) filter.ville = ville;
     if (quartier) filter.quartier = quartier;
-    
+
     // Apply property type filters
     if (typeOfListing) filter.typeOfListing = typeOfListing;
     if (listingType) filter.listingType = listingType;
-    
+
     // Apply feature filters
     if (bedrooms) filter['details.bedroom'] = parseInt(bedrooms);
     if (bathrooms) filter['details.bathroom'] = parseInt(bathrooms);
@@ -334,12 +334,12 @@ const getAllListings = async (req, res) => {
     // Price range filter based on listing type
     if (priceMin || priceMax) {
       const priceFilter = {};
-      
+
       if (listingType === 'rent') {
         if (priceMin) priceFilter.$gte = parseFloat(priceMin);
         if (priceMax) priceFilter.$lte = parseFloat(priceMax);
         filter.priceMonthly = priceFilter;
-      } 
+      }
       else if (listingType === 'daily') {
         if (priceMin) priceFilter.$gte = parseFloat(priceMin);
         if (priceMax) priceFilter.$lte = parseFloat(priceMax);
@@ -353,12 +353,12 @@ const getAllListings = async (req, res) => {
       else if (priceMin || priceMax) {
         // If no listing type specified but price filter is used
         const ranges = [];
-        
+
         if (priceMin && priceMax) {
           ranges.push({ priceMonthly: { $gte: parseFloat(priceMin), $lte: parseFloat(priceMax) } });
           ranges.push({ priceDaily: { $gte: parseFloat(priceMin), $lte: parseFloat(priceMax) } });
           ranges.push({ priceSale: { $gte: parseFloat(priceMin), $lte: parseFloat(priceMax) } });
-        } 
+        }
         else if (priceMin) {
           ranges.push({ priceMonthly: { $gte: parseFloat(priceMin) } });
           ranges.push({ priceDaily: { $gte: parseFloat(priceMin) } });
@@ -369,7 +369,7 @@ const getAllListings = async (req, res) => {
           ranges.push({ priceDaily: { $lte: parseFloat(priceMax) } });
           ranges.push({ priceSale: { $lte: parseFloat(priceMax) } });
         }
-        
+
         filter.$or = ranges;
       }
     }
@@ -396,12 +396,12 @@ const getAllListings = async (req, res) => {
 
     // Execute the paginated query
     let listingsQuery = Listing.find(filter);
-    
+
     // Add text score projection if searching
     if (search) {
       listingsQuery = listingsQuery.select({ score: { $meta: "textScore" } });
     }
-    
+
     const listings = await listingsQuery
       .sort(sortOptions)
       .skip(skip)
@@ -411,12 +411,12 @@ const getAllListings = async (req, res) => {
     // Format listings to handle image format consistency
     const formattedListings = listings.map(listing => {
       const plainListing = listing.toObject();
-      
+
       // If images are stored as objects with url and public_id, extract just the URLs
       if (plainListing.images.length > 0 && typeof plainListing.images[0] === 'object') {
         plainListing.images = plainListing.images.map(img => img.url);
       }
-      
+
       return plainListing;
     });
 
@@ -425,7 +425,7 @@ const getAllListings = async (req, res) => {
     const hasNext = page < totalPages;
     const hasPrev = page > 1;
 
-    res.status(200).json({ 
+    res.status(200).json({
       success: true,
       listings: formattedListings,
       pagination: {
@@ -457,9 +457,9 @@ const getListing = async (req, res) => {
       .populate('createdBy', 'firstName lastName email');
 
     if (!listing) {
-      return res.status(404).json({ 
+      return res.status(404).json({
         success: false,
-        message: 'Listing not found' 
+        message: 'Listing not found'
       });
     }
 
@@ -496,19 +496,19 @@ const getMyListings = async (req, res) => {
     const listings = await Listing.find({
       createdBy: req.user._id
     })
-    .sort({ createdAt: -1 })
-    .skip(skip)
-    .limit(actualLimit);
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(actualLimit);
 
     // Format listings to show only URLs for frontend display
     const formattedListings = listings.map(listing => {
       const plainListing = listing.toObject();
-      
+
       // If images are stored as objects with url and public_id, extract just the URLs
       if (plainListing.images.length > 0 && typeof plainListing.images[0] === 'object') {
         plainListing.images = plainListing.images.map(img => img.url);
       }
-      
+
       return plainListing;
     });
 
@@ -549,17 +549,17 @@ const updateListing = async (req, res) => {
     const listing = await Listing.findById(id);
 
     if (!listing) {
-      return res.status(404).json({ 
+      return res.status(404).json({
         success: false,
-        error: 'Listing not found' 
+        error: 'Listing not found'
       });
     }
 
     // Authorization check
     if (req.user.role !== 'admin' && listing.createdBy.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ 
+      return res.status(403).json({
         success: false,
-        error: 'Forbidden: You can only update your own listings' 
+        error: 'Forbidden: You can only update your own listings'
       });
     }
 
@@ -568,9 +568,9 @@ const updateListing = async (req, res) => {
       try {
         req.body.details = JSON.parse(req.body.details);
       } catch (err) {
-        return res.status(400).json({ 
-          success: false, 
-          message: 'Invalid details format' 
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid details format'
         });
       }
     }
@@ -580,11 +580,14 @@ const updateListing = async (req, res) => {
       listing.isDeleted = req.body.isDeleted;
     }
 
+    console.log(`Update request for listing ${id} by user ${req.user._id}`);
+    console.log('Request body:', JSON.stringify(req.body, null, 2));
+
     // Handle removal of existing images
     if (req.body.removedImages) {
       // Handle case where removedImages might be a JSON string or an array
       let removedImages;
-      
+
       if (typeof req.body.removedImages === 'string') {
         try {
           removedImages = JSON.parse(req.body.removedImages);
@@ -593,8 +596,8 @@ const updateListing = async (req, res) => {
           removedImages = [req.body.removedImages];
         }
       } else {
-        removedImages = Array.isArray(req.body.removedImages) 
-          ? req.body.removedImages 
+        removedImages = Array.isArray(req.body.removedImages)
+          ? req.body.removedImages
           : [req.body.removedImages];
       }
 
@@ -661,7 +664,7 @@ const updateListing = async (req, res) => {
     // Handle new image uploads
     if (req.files && req.files.length > 0) {
       let newImageUrls = [];
-      
+
       if (req.files[0].location) {
         // Using S3
         newImageUrls = req.files.map(file => file.location);
@@ -685,9 +688,11 @@ const updateListing = async (req, res) => {
 
         newImageUrls = uploadedImages.map(img => img.secure_url);
       }
-      
+
       listing.images = [...listing.images, ...newImageUrls];
     }
+
+    console.log('About to save updated listing');
 
     const updatedListing = await listing.save();
 
@@ -698,7 +703,12 @@ const updateListing = async (req, res) => {
     });
 
   } catch (error) {
-    logger.error('Error updating listing:', error);
+    console.error('Detailed update error:', {
+      message: error.message,
+      stack: error.stack,
+      code: error.code,
+      listingId: id
+    });
 
     if (error.name === 'ValidationError') {
       const validationErrors = {};
@@ -762,23 +772,23 @@ const deleteListing = async (req, res) => {
     const listing = await Listing.findById(id);
 
     if (!listing) {
-      return res.status(404).json({ 
-        success: false, 
-        error: 'Listing not found' 
+      return res.status(404).json({
+        success: false,
+        error: 'Listing not found'
       });
     }
 
     // Authorization check
     if (req.user.role !== 'admin' && listing.createdBy.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ 
-        success: false, 
-        error: 'Forbidden: You can only delete your own listings' 
+      return res.status(403).json({
+        success: false,
+        error: 'Forbidden: You can only delete your own listings'
       });
     }
 
     // Determine if using S3 or Cloudinary based on image URL format
     const isS3 = listing.images[0] && listing.images[0].includes('amazonaws.com');
-    
+
     // Delete images from storage
     if (isS3) {
       // Delete from S3
@@ -803,9 +813,9 @@ const deleteListing = async (req, res) => {
     // Delete the listing from the database
     await listing.deleteOne();
 
-    res.json({ 
-      success: true, 
-      message: 'Listing permanently deleted successfully' 
+    res.json({
+      success: true,
+      message: 'Listing permanently deleted successfully'
     });
 
   } catch (error) {

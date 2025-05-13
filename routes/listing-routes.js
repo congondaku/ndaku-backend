@@ -156,6 +156,21 @@ router.post(
   processListingData,
   listingController.addListing
 );
+
+router.get('/test-aws', async (req, res) => {
+  try {
+    const { s3 } = require('../config/s3');
+    const result = await s3.listBuckets().promise();
+    return res.json({ success: true, buckets: result.Buckets.map(b => b.Name) });
+  } catch (error) {
+    console.error('AWS Error:', error);
+    return res.status(500).json({ 
+      success: false, 
+      error: error.message,
+      stack: error.stack
+    });
+  }
+});
 // Update existing listing - using AWS S3 upload
 router.put(
   '/update/:id',
