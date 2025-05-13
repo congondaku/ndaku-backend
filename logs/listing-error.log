@@ -1,0 +1,12 @@
+2025-05-12T00:35:30.386Z error: (node:57527) [MONGODB DRIVER] Warning: useNewUrlParser is a deprecated option: useNewUrlParser has no effect since Node.js Driver version 4.0.0 and will be removed in the next major version
+(Use `node --trace-warnings ...` to show where the warning was created)
+2025-05-12T00:35:30.387Z error: (node:57527) [MONGODB DRIVER] Warning: useUnifiedTopology is a deprecated option: useUnifiedTopology has no effect since Node.js Driver version 4.0.0 and will be removed in the next major version
+2025-05-12T00:35:34.729Z error: Error testing S3 connection: Missing credentials in config, if using AWS_CONFIG_FILE, set AWS_SDK_LOAD_CONFIG=1
+2025-05-12T00:57:08.095Z error: (node:69781) [MONGODB DRIVER] Warning: useNewUrlParser is a deprecated option: useNewUrlParser has no effect since Node.js Driver version 4.0.0 and will be removed in the next major version
+(Use `node --trace-warnings ...` to show where the warning was created)
+2025-05-12T00:57:08.097Z error: (node:69781) [MONGODB DRIVER] Warning: useUnifiedTopology is a deprecated option: useUnifiedTopology has no effect since Node.js Driver version 4.0.0 and will be removed in the next major version
+2025-05-12T00:57:13.373Z error: Error testing S3 connection: Missing credentials in config, if using AWS_CONFIG_FILE, set AWS_SDK_LOAD_CONFIG=1
+2025-05-12T01:29:39.945Z error: Add listing error details: E11000 duplicate key error collection: NdakuData.listings index: address_1 dup key: { address: "100 1st Ave NE" }
+2025-05-12T01:29:39.946Z error: API Error (500) at POST /api/listings/add
+2025-05-12T01:36:34.932Z error: API Error (404) at GET /api/listings/68210adef0aede0927d6e820
+2025-05-12T02:31:18.642Z error: API Error (404) at GET /api/listings/68210adef0aede0927d6e820

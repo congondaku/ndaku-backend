@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: ndaku-backend
+    env: node
+    region: oregon
+    plan: free
+    branch: main
+    buildCommand: npm install
+    startCommand: node app.js
+    autoDeploy: true
+    envVars:
+      - key: PORT
+        sync: false
+      - key: MONGODB_URI
+        sync: false
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false
+      - key: JWT_SECRET
+        sync: false
