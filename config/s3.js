@@ -1,45 +1,74 @@
+// config/s3.js
 const AWS = require('aws-sdk');
 const multerS3 = require('multer-s3');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 
-// Load from environment variables only - no file reading
-const awsAccessKeyId = process.env.AWS_ACCESS_KEY_ID;
-const awsSecretAccessKey = process.env.AWS_SECRET_ACCESS_KEY;
-const awsRegion = process.env.AWS_REGION || 'us-east-1';
+// Force AWS SDK to load credentials from environment variables
+process.env.AWS_SDK_LOAD_CONFIG = "1";
+
+// Set AWS credentials explicitly before requiring the SDK
+AWS.config.update({
+  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  region: process.env.AWS_REGION || 'us-east-1'
+});
+
+// Set default region if not specified
+if (!AWS.config.region) {
+  AWS.config.region = 'us-east-1';
+}
+
 const bucketName = process.env.AWS_S3_BUCKET_NAME || 'congondaku';
 
 // Log AWS config for debugging (without revealing actual credentials)
-console.log('AWS Config:', {
-  accessKeyExists: !!awsAccessKeyId,
-  secretKeyExists: !!awsSecretAccessKey,
-  region: awsRegion,
-  bucket: bucketName
+console.log('AWS SDK Configuration:', {
+  accessKeyExists: !!process.env.AWS_ACCESS_KEY_ID,
+  secretKeyExists: !!process.env.AWS_SECRET_ACCESS_KEY,
+  region: AWS.config.region,
+  bucket: bucketName,
+  sdkLoadConfig: process.env.AWS_SDK_LOAD_CONFIG,
+  sdkVersion: AWS.VERSION
 });
 
-// Check for missing credentials
-if (!awsAccessKeyId || !awsSecretAccessKey) {
-  console.warn('⚠️ WARNING: AWS credentials not found in environment variables!');
-  console.warn('Uploads may fall back to local storage');
-}
-
-// Create S3 service object with explicit credentials
+// Create S3 service object with credentials directly from constructor
 const s3 = new AWS.S3({
-  accessKeyId: awsAccessKeyId,
-  secretAccessKey: awsSecretAccessKey,
-  region: awsRegion
+  credentials: new AWS.Credentials({
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
+  }),
+  region: AWS.config.region
 });
 
-// Test S3 connection on startup
-s3.listBuckets((err, data) => {
-  if (err) {
-    console.error('Error testing S3 connection:', err);
-  } else {
+// Add error handlers to S3 object
+s3.on('error', (err) => {
+  console.error('S3 Service Error:', err);
+});
+
+// Test S3 connection on startup - with a timeout
+let s3ConnectionTested = false;
+setTimeout(() => {
+  if (!s3ConnectionTested) {
+    console.warn('S3 connection test timed out. AWS credentials may be invalid.');
+  }
+}, 10000);
+
+s3.listBuckets().promise()
+  .then(data => {
+    s3ConnectionTested = true;
     console.log('Successfully connected to AWS S3. Available buckets:',
       data.Buckets.map(b => b.Name).join(', '));
-  }
-});
+  })
+  .catch(err => {
+    s3ConnectionTested = true;
+    console.error('Error testing S3 connection:', err);
+    console.error('Error details:', {
+      name: err.name, 
+      code: err.code, 
+      message: err.message
+    });
+  });
 
 // Configure multer with error handling
 const storage = multerS3({
@@ -80,11 +109,14 @@ const fileFilter = (req, file, cb) => {
   }
 };
 
-// Create multer upload with better error handling
+// Determine if we have valid AWS credentials
+const hasValidAwsCredentials = !!process.env.AWS_ACCESS_KEY_ID && 
+                               !!process.env.AWS_SECRET_ACCESS_KEY;
+
+// Create multer upload instance
 let upload;
 try {
-  // Check if we have AWS credentials before trying to set up S3 storage
-  if (awsAccessKeyId && awsSecretAccessKey) {
+  if (hasValidAwsCredentials) {
     upload = multer({
       storage: storage,
       limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB
@@ -92,63 +124,92 @@ try {
     });
     console.log('S3 storage configured for uploads');
   } else {
-    throw new Error('AWS credentials missing, falling back to disk storage');
+    throw new Error('AWS credentials not available');
   }
 } catch (err) {
-  console.error('Error configuring S3 storage:', err);
+  console.error('Error configuring S3 storage:', err.message);
   console.log('Falling back to disk storage for uploads');
   upload = multer({
     storage: diskStorage,
-    limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB
+    limits: { fileSize: 5 * 1024 * 1024 },
     fileFilter: fileFilter
   });
 }
 
+// Add middleware to handle S3 errors
+const handleS3Errors = (req, res, next) => {
+  if (!hasValidAwsCredentials) {
+    req.awsError = 'AWS credentials not configured';
+  }
+  next();
+};
+
 // Function to delete a file from S3
 const deleteFileFromS3 = async (fileUrl) => {
-  try {
-    if (!fileUrl) {
-      console.warn('No file URL provided for S3 deletion');
-      return false;
+  return new Promise((resolve) => {
+    try {
+      // Check for valid URL and credentials
+      if (!fileUrl) {
+        console.warn('No file URL provided for S3 deletion');
+        return resolve(false);
+      }
+      
+      if (!hasValidAwsCredentials) {
+        console.warn('Cannot delete from S3: AWS credentials not configured');
+        return resolve(false);
+      }
+      
+      // Extract key from URL using various patterns
+      let key = '';
+      if (fileUrl.includes(bucketName)) {
+        // If URL contains bucket name directly
+        const parts = fileUrl.split(`${bucketName}/`);
+        if (parts.length > 1) {
+          key = parts[1];
+        }
+      } else if (fileUrl.includes('amazonaws.com')) {
+        // Standard S3 URL format
+        const parts = fileUrl.split(/\.com\//);
+        if (parts.length > 1) {
+          key = parts[1];
+        }
+      }
+      
+      if (!key) {
+        console.warn('Could not extract S3 key from URL:', fileUrl);
+        return resolve(false);
+      }
+      
+      console.log(`Deleting S3 object: Bucket=${bucketName}, Key=${key}`);
+      
+      // Delete the object
+      s3.deleteObject({
+        Bucket: bucketName, 
+        Key: key
+      }).promise()
+        .then(() => {
+          console.log('Successfully deleted file from S3:', key);
+          resolve(true);
+        })
+        .catch(err => {
+          console.error('Error deleting file from S3:', {
+            error: err.message,
+            code: err.code,
+            fileUrl,
+            key
+          });
+          resolve(false); // Resolve with false instead of rejecting
+        });
+    } catch (error) {
+      console.error('Unexpected error in deleteFileFromS3:', error);
+      resolve(false); // Never throw, always resolve
     }
-    
-    // Simple URL parsing - just get everything after the bucket name
-    const urlParts = fileUrl.split('/');
-    const bucketIndex = urlParts.findIndex(part => 
-      part === bucketName || part.includes('.s3.') || part.includes('amazonaws.com')
-    );
-    
-    // Extract the key
-    const key = urlParts.slice(bucketIndex + 1).join('/');
-    
-    if (!key) {
-      console.warn('Could not parse S3 URL:', fileUrl);
-      return false;
-    }
-    
-    console.log(`Deleting from S3: bucket=${bucketName}, key=${key}`);
-    
-    const result = await s3.deleteObject({
-      Bucket: bucketName,
-      Key: key
-    }).promise();
-    
-    console.log('S3 deletion successful, result:', result);
-    return true;
-  } catch (error) {
-    console.error('S3 deletion error:', {
-      message: error.message,
-      code: error.code,
-      stack: error.stack,
-      fileUrl
-    });
-    // Return false but don't throw - we don't want to break the update flow
-    return false;
-  }
+  });
 };
 
 module.exports = {
   upload,
   deleteFileFromS3,
-  s3 // Export s3 client for potential direct usage
+  s3,
+  handleS3Errors
 };
