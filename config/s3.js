@@ -11,7 +11,7 @@ process.env.MY_SDK_LOAD_CONFIG = "1";
 // Set AWS credentials explicitly before requiring the SDK
 AWS.config.update({
   accessKeyId: process.env.MY_AWS_ACCESS_KEY_ID,
-  secretAccessKey: process.env.MY_AWS_ACCESS_KEY_ID,
+  secretAccessKey: process.env.MY_AWS_SECRET_ACCESS_KEY,
   region: process.env.MY_AWS_REGION || 'us-east-1'
 });
 
@@ -36,7 +36,7 @@ console.log('AWS SDK Configuration:', {
 const s3 = new AWS.S3({
   credentials: new AWS.Credentials({
     accessKeyId: process.env.MY_AWS_ACCESS_KEY_ID,
-    secretAccessKey: process.env.MY_AWS_ACCESS_KEY_ID
+    secretAccessKey: process.env.MY_AWS_SECRET_ACCESS_KEY
   }),
   region: AWS.config.region
 });
@@ -159,7 +159,7 @@ const deleteFileFromS3 = async (fileUrl) => {
       const s3Op = new AWS.S3({
         credentials: new AWS.Credentials({
           accessKeyId: process.env.MY_AWS_ACCESS_KEY_ID,
-          secretAccessKey: process.env.MY_AWS_ACCESS_KEY_ID
+          secretAccessKey: process.env.MY_AWS_SECRET_ACCESS_KEY
         }),
         region: process.env.MY_AWS_REGION || 'us-east-1'
       });

@@ -3,17 +3,16 @@ const AWS = require('aws-sdk');
 
 console.log('Checking AWS credentials...');
 console.log('MY_AWS_ACCESS_KEY_ID present:', !!process.env.MY_AWS_ACCESS_KEY_ID);
-console.log('MY_AWS_ACCESS_KEY_ID present:', !!process.env.MY_AWS_ACCESS_KEY_ID);
+console.log('MY_AWS_SECRET_ACCESS_KEY present:', !!process.env.MY_AWS_SECRET_ACCESS_KEY); // Fix the variable name
 console.log('MY_AWS_REGION:', process.env.MY_AWS_REGION);
 console.log('MY_S3_BUCKET_NAME:', process.env.MY_S3_BUCKET_NAME);
 
 // Configure AWS
 AWS.config.update({
   accessKeyId: process.env.MY_AWS_ACCESS_KEY_ID,
-  secretAccessKey: process.env.MY_AWS_ACCESS_KEY_ID,
+  secretAccessKey: process.env.MY_AWS_SECRET_ACCESS_KEY,
   region: process.env.MY_AWS_REGION || 'us-east-1'
 });
-
 // Create S3 service object
 const s3 = new AWS.S3();
 
