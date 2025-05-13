@@ -51,4 +51,4 @@ public/bundle.*
 # Testing
 coverage
 .nyc_output.env
-node_modules/
+node_modules/.env
