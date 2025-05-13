@@ -148,61 +148,70 @@ const handleS3Errors = (req, res, next) => {
 const deleteFileFromS3 = async (fileUrl) => {
   return new Promise((resolve) => {
     try {
-      // Check for valid URL and credentials
       if (!fileUrl) {
-        console.warn('No file URL provided for S3 deletion');
+        console.log('No file URL provided for deletion');
         return resolve(false);
       }
-      
-      if (!hasValidAwsCredentials) {
-        console.warn('Cannot delete from S3: AWS credentials not configured');
-        return resolve(false);
-      }
-      
-      // Extract key from URL using various patterns
-      let key = '';
-      if (fileUrl.includes(bucketName)) {
-        // If URL contains bucket name directly
-        const parts = fileUrl.split(`${bucketName}/`);
-        if (parts.length > 1) {
-          key = parts[1];
+
+      console.log(`Attempting to delete file: ${fileUrl}`);
+
+      // Create a new S3 instance with explicit credentials for this operation
+      const s3Op = new AWS.S3({
+        credentials: new AWS.Credentials({
+          accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+          secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
+        }),
+        region: process.env.AWS_REGION || 'us-east-1'
+      });
+
+      // Extract the key using URL parsing
+      let key;
+      try {
+        // Create a URL object
+        const url = new URL(fileUrl);
+        
+        // Get the pathname (e.g., "/bucket-name/path/to/file.jpg")
+        const pathname = url.pathname;
+        
+        // Split by '/' and remove empty elements
+        const parts = pathname.split('/').filter(part => part.length > 0);
+        
+        // If the first part is the bucket name, remove it
+        if (parts[0] === bucketName) {
+          key = parts.slice(1).join('/');
+        } else {
+          key = parts.join('/');
         }
-      } else if (fileUrl.includes('amazonaws.com')) {
-        // Standard S3 URL format
-        const parts = fileUrl.split(/\.com\//);
-        if (parts.length > 1) {
-          key = parts[1];
-        }
+      } catch (parseError) {
+        // Fallback to simple splitting if URL parsing fails
+        console.log('URL parsing failed, using fallback method');
+        const simpleParts = fileUrl.split('/');
+        key = simpleParts.slice(3).join('/'); // Skip protocol, domain, and bucket
       }
-      
+
       if (!key) {
-        console.warn('Could not extract S3 key from URL:', fileUrl);
+        console.log(`Could not extract key from URL: ${fileUrl}`);
         return resolve(false);
       }
-      
-      console.log(`Deleting S3 object: Bucket=${bucketName}, Key=${key}`);
-      
-      // Delete the object
-      s3.deleteObject({
-        Bucket: bucketName, 
+
+      console.log(`Deleting with bucket=${bucketName}, key=${key}`);
+
+      // Use explicit credentials for this operation
+      s3Op.deleteObject({
+        Bucket: bucketName,
         Key: key
-      }).promise()
-        .then(() => {
-          console.log('Successfully deleted file from S3:', key);
-          resolve(true);
-        })
-        .catch(err => {
-          console.error('Error deleting file from S3:', {
-            error: err.message,
-            code: err.code,
-            fileUrl,
-            key
-          });
-          resolve(false); // Resolve with false instead of rejecting
-        });
+      }, (err, data) => {
+        if (err) {
+          console.error('S3 delete error:', err);
+          return resolve(false);
+        }
+        
+        console.log('S3 delete success:', data);
+        return resolve(true);
+      });
     } catch (error) {
       console.error('Unexpected error in deleteFileFromS3:', error);
-      resolve(false); // Never throw, always resolve
+      resolve(false);
     }
   });
 };
