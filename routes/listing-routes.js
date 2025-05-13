@@ -5,7 +5,7 @@ const listingController = require('../controllers/listing-controller');
 const locationData = require('../utils/locationData');
 const villesData = require('../utils/villesData');
 const multer = require('multer');
-const { upload } = require('../config/s3'); // Changed to use S3 config
+const { upload, s3 } = require('../config/s3'); // Updated to use s3 config
 const Listing = require('../models/Listing');
 
 /**
@@ -112,6 +112,16 @@ router.get('/locations/:cityName', (req, res) => {
   }
 });
 
+const handleS3Error = (req, res, next) => {
+  if (req.awsError) {
+    return res.status(400).json({
+      success: false,
+      message: req.awsError
+    });
+  }
+  next();
+};
+
 // Get single listing
 router.get('/:id', listingController.getListing);
 
@@ -121,17 +131,32 @@ router.use(authenticate); // All routes after this require authentication
 // Get current user's listings
 router.get('/user/current', listingController.getMyListings);
 
-// Create new listing - now using S3 upload
+// Create new listing - using AWS S3 upload
 router.post(
   '/add',
   logRequest,
-  upload.array('images', 10), // This now uses the S3 upload middleware
-  handleMulterError,
+  (req, res, next) => {
+    try {
+      upload.array('images', 10)(req, res, (err) => {
+        if (err) {
+          if (err.message === 'The AWS Access Key Id you provided does not exist in our records.') {
+            req.awsError = 'AWS S3 connection error: ' + err.message;
+            return next();
+          }
+          return handleMulterError(err, req, res, next);
+        }
+        next();
+      });
+    } catch (err) {
+      req.awsError = 'Upload error: ' + err.message;
+      next();
+    }
+  },
+  handleS3Error,
   processListingData,
   listingController.addListing
 );
-
-// Update existing listing - now using S3 upload
+// Update existing listing - using AWS S3 upload
 router.put(
   '/update/:id',
   logRequest,

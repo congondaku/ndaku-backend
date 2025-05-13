@@ -26,6 +26,22 @@ const addListing = async (req, res) => {
     // Log the complete request body and files for debugging
     console.log("Request body:", req.body);
     console.log("Request files:", req.files ? req.files.length : "none");
+
+    // Check for AWS S3 connection error
+    if (req.fileValidationError) {
+      return res.status(400).json({
+        success: false,
+        message: req.fileValidationError
+      });
+    }
+
+    // Check if the request was aborted due to S3 error
+    if (req.awsError) {
+      return res.status(400).json({
+        success: false,
+        message: "Error connecting to AWS S3: " + req.awsError
+      });
+    }
     
     // Validate required fields
     const validation = validateListingData(req.body);
