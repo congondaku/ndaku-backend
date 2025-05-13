@@ -1,6 +1,7 @@
 version: 1
 applications:
-  - backend:
+  - appRoot: /
+    backend:
       phases:
         preBuild:
           commands:
@@ -12,8 +13,6 @@ applications:
         baseDirectory: /
         files:
           - '**/*'
-        discard-paths: no
       cache:
         paths:
           - node_modules/**/*
-    appRoot: /
