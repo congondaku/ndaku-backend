@@ -616,37 +616,26 @@ const updateListing = async (req, res) => {
           : [req.body.removedImages];
       }
 
+      // Log AWS environment for debugging
       console.log('AWS Environment Check:', {
         AWS_ACCESS_KEY_ID_exists: !!process.env.MY_AWS_ACCESS_KEY_ID,
-        AWS_SECRET_ACCESS_KEY_exists: !!process.env.MY_AWS_ACCESS_KEY_ID,
+        AWS_SECRET_ACCESS_KEY_exists: !!process.env.MY_AWS_SECRET_ACCESS_KEY,
         MY_AWS_REGION: process.env.MY_AWS_REGION,
         MY_S3_BUCKET_NAME: process.env.MY_S3_BUCKET_NAME,
-        MY_SDK_LOAD_CONFIG: process.env.MY_SDK_LOAD_CONFIG,
         removedImagesCount: removedImages.length
       });
 
-      // Delete images from storage (S3 or Cloudinary)
-      if (req.files && req.files[0] && req.files[0].location) {
-        // Using S3
+      // Delete images from S3
+      try {
         await Promise.all(
           removedImages.map(imageUrl => {
             logger.info(`Deleting image from S3: ${imageUrl}`);
             return deleteFileFromS3(imageUrl);
           })
         );
-      } else {
-        // Using Cloudinary
-        await Promise.all(
-          removedImages.map(imageUrl => {
-            // Extract public_id from the Cloudinary URL
-            const urlParts = imageUrl.split('/');
-            const publicIdWithExtension = urlParts[urlParts.length - 1];
-            const publicId = `real-estate-listings/${publicIdWithExtension.split('.')[0]}`;
-
-            logger.info(`Deleting image from Cloudinary: ${publicId}`);
-            return cloudinary.uploader.destroy(publicId);
-          })
-        );
+      } catch (error) {
+        logger.error(`Error deleting images from S3: ${error.message}`);
+        // Continue execution even if deletion fails
       }
 
       // Filter out removed images from the listing's images array
@@ -685,34 +674,10 @@ const updateListing = async (req, res) => {
       listing.priceMonthly = undefined;
     }
 
-    // Handle new image uploads
+    // Handle new image uploads (S3 only)
     if (req.files && req.files.length > 0) {
-      let newImageUrls = [];
-
-      if (req.files[0].location) {
-        // Using S3
-        newImageUrls = req.files.map(file => file.location);
-      } else {
-        // Using Cloudinary
-        const uploadedImages = await Promise.all(
-          req.files.map(file =>
-            cloudinary.uploader.upload(file.path, {
-              folder: 'real-estate-listings',
-              transformation: [{ width: 1000, height: 750, crop: 'limit' }]
-            })
-          )
-        );
-
-        // Clean up uploaded files
-        req.files.forEach(file => {
-          if (fs.existsSync(file.path)) {
-            fs.unlinkSync(file.path);
-          }
-        });
-
-        newImageUrls = uploadedImages.map(img => img.secure_url);
-      }
-
+      // New images from S3
+      const newImageUrls = req.files.map(file => file.location);
       listing.images = [...listing.images, ...newImageUrls];
     }
 
@@ -731,11 +696,10 @@ const updateListing = async (req, res) => {
       message: error.message,
       stack: error.stack,
       code: error.code,
-      listingId: id
+      listingId: req.params.id
     });
 
     if (error.name === 'ValidationError') {
-      let removedImages;
       const validationErrors = {};
       for (const field in error.errors) {
         validationErrors[field] = error.errors[field].message;
@@ -811,28 +775,17 @@ const deleteListing = async (req, res) => {
       });
     }
 
-    // Determine if using S3 or Cloudinary based on image URL format
-    const isS3 = listing.images[0] && listing.images[0].includes('amazonaws.com');
-
-    // Delete images from storage
-    if (isS3) {
-      // Delete from S3
+    // Delete all images from S3
+    try {
       await Promise.all(
         listing.images.map(imageUrl => {
           logger.info(`Deleting image from S3: ${imageUrl}`);
           return deleteFileFromS3(imageUrl);
         })
       );
-    } else {
-      // Delete from Cloudinary
-      await Promise.all(
-        listing.images.map(imageUrl => {
-          const urlParts = imageUrl.split('/');
-          const publicIdWithExtension = urlParts[urlParts.length - 1];
-          const publicId = `real-estate-listings/${publicIdWithExtension.split('.')[0]}`;
-          return cloudinary.uploader.destroy(publicId);
-        })
-      );
+    } catch (error) {
+      logger.error(`Error deleting images from S3: ${error.message}`);
+      // Continue execution even if deletion fails
     }
 
     // Delete the listing from the database
