@@ -33,8 +33,8 @@ if (fs.existsSync(envPath)) {
 // Check environment variables
 console.log('\n== Environment Variables ==');
 console.log('NODE_ENV:', process.env.NODE_ENV);
-console.log('MY_AWS_ACCESS_KEY_ID exists:', !!process.env.MY_AWS_ACCESS_KEY_ID);
-console.log('MY_AWS_ACCESS_KEY_ID exists:', !!process.env.MY_AWS_ACCESS_KEY_ID);
+console.log('MY_AWS_SECRET_ACCESS_KEY exists:', !!process.env.MY_AWS_SECRET_ACCESS_KEY);
+console.log('MY_AWS_SECRET_ACCESS_KEY exists:', !!process.env.MY_AWS_SECRET_ACCESS_KEY);
 console.log('MY_AWS_REGION exists:', !!process.env.MY_AWS_REGION);
 console.log('MY_S3_BUCKET_NAME exists:', !!process.env.MY_S3_BUCKET_NAME);
 

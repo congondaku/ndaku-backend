@@ -13,7 +13,7 @@ if (!process.env.MY_AWS_ACCESS_KEY_ID || !process.env.MY_AWS_ACCESS_KEY_ID) {
 
 // Load environment variables 
 const awsAccessKeyId = process.env.MY_AWS_ACCESS_KEY_ID;
-const awsSecretAccessKey = process.env.MY_AWS_ACCESS_KEY_ID;
+const awsSecretAccessKey = process.env.MY_AWS_SECRET_ACCESS_KEY;
 const awsRegion = process.env.MY_AWS_REGION || 'us-east-1';
 const bucketName = process.env.MY_S3_BUCKET_NAME || 'congondaku';
 
