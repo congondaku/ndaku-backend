@@ -9,8 +9,8 @@ console.log("Environment variables loaded:");
 console.log("NODE_ENV:", process.env.NODE_ENV);
 console.log(
   "AWS Keys present:",
-  !!process.env.AWS_ACCESS_KEY_ID,
-  !!process.env.AWS_SECRET_ACCESS_KEY
+  !!process.env.MY_AWS_ACCESS_KEY_ID,
+  !!process.env.MY_AWS_ACCESS_KEY_ID
 );
 
 // Rest of your imports
@@ -162,7 +162,7 @@ if (process.env.NODE_ENV === "production") {
 }
 
 // Database & Server connection
-const PORT = process.env.PORT || 5001;
+const PORT = process.env.PORT || 3000;
 const MONGO_URI = process.env.MONGODB_URI;
 
 // Add error handling for uncaught exceptions

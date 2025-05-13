@@ -39,13 +39,13 @@ cloudinary.config({
 
 // Configure AWS S3
 AWS.config.update({
-  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-  region: process.env.AWS_REGION
+  accessKeyId: process.env.MY_AWS_ACCESS_KEY_ID,
+  secretAccessKey: process.env.MY_AWS_ACCESS_KEY_ID,
+  region: process.env.MY_AWS_REGION
 });
 
 const s3 = new AWS.S3();
-const BUCKET_NAME = process.env.AWS_S3_BUCKET_NAME;
+const BUCKET_NAME = process.env.MY_S3_BUCKET_NAME;
 const TEMP_DIR = path.join(__dirname, '../temp_migration');
 
 // Helper function to download an image from URL to temp folder

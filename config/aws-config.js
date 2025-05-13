@@ -5,17 +5,17 @@ const multer = require('multer');
 const path = require('path');
 
 // Check if AWS keys are available
-if (!process.env.AWS_ACCESS_KEY_ID || !process.env.AWS_SECRET_ACCESS_KEY) {
+if (!process.env.MY_AWS_ACCESS_KEY_ID || !process.env.MY_AWS_ACCESS_KEY_ID) {
   console.error('⚠️ AWS credentials not found in environment variables!');
-  console.error('Please ensure AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY are set in your .env file');
+  console.error('Please ensure MY_AWS_ACCESS_KEY_ID and MY_AWS_ACCESS_KEY_ID are set in your .env file');
   console.error('File uploads might fail or fall back to local storage');
 }
 
 // Load environment variables 
-const awsAccessKeyId = process.env.AWS_ACCESS_KEY_ID;
-const awsSecretAccessKey = process.env.AWS_SECRET_ACCESS_KEY;
-const awsRegion = process.env.AWS_REGION || 'us-east-1';
-const bucketName = process.env.AWS_S3_BUCKET_NAME || 'congondaku';
+const awsAccessKeyId = process.env.MY_AWS_ACCESS_KEY_ID;
+const awsSecretAccessKey = process.env.MY_AWS_ACCESS_KEY_ID;
+const awsRegion = process.env.MY_AWS_REGION || 'us-east-1';
+const bucketName = process.env.MY_S3_BUCKET_NAME || 'congondaku';
 
 // Log AWS config for debugging
 console.log('AWS Config:', {

@@ -533,11 +533,26 @@ const getMyListings = async (req, res) => {
       }
     });
   } catch (error) {
-    logger.error('Error getting user listings:', error);
-    res.status(500).json({
+    // Log extensive details about the error
+    console.error('CRITICAL UPDATE ERROR:', {
+      error: error.message,
+      stack: error.stack,
+      name: error.name,
+      code: error.code || 'no_code',
+      listingId: id,
+      userId: req.user ? req.user._id : 'unknown',
+      bodyKeys: Object.keys(req.body),
+      removedImagesPresent: !!req.body.removedImages,
+      filesPresent: !!(req.files && req.files.length)
+    });
+
+    // Return a more detailed error response
+    return res.status(500).json({
       success: false,
-      message: 'Failed to fetch your listings',
-      error: error.message
+      error: 'Failed to update listing',
+      errorType: error.name,
+      errorCode: error.code,
+      details: error.message
     });
   }
 };
@@ -600,6 +615,15 @@ const updateListing = async (req, res) => {
           ? req.body.removedImages
           : [req.body.removedImages];
       }
+
+      console.log('AWS Environment Check:', {
+        AWS_ACCESS_KEY_ID_exists: !!process.env.MY_AWS_ACCESS_KEY_ID,
+        AWS_SECRET_ACCESS_KEY_exists: !!process.env.MY_AWS_ACCESS_KEY_ID,
+        MY_AWS_REGION: process.env.MY_AWS_REGION,
+        MY_S3_BUCKET_NAME: process.env.MY_S3_BUCKET_NAME,
+        MY_SDK_LOAD_CONFIG: process.env.MY_SDK_LOAD_CONFIG,
+        removedImagesCount: removedImages.length
+      });
 
       // Delete images from storage (S3 or Cloudinary)
       if (req.files && req.files[0] && req.files[0].location) {
@@ -711,6 +735,7 @@ const updateListing = async (req, res) => {
     });
 
     if (error.name === 'ValidationError') {
+      let removedImages;
       const validationErrors = {};
       for (const field in error.errors) {
         validationErrors[field] = error.errors[field].message;
