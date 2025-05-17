@@ -59,7 +59,7 @@ const listingSchema = new mongoose.Schema({
   },
   currency: {
     type: String,
-    enum: ['USD', 'CDF', 'EUR'],
+    enum: ['USD', 'CDF'],
     default: 'USD'
   },
   negotiable: {
@@ -153,8 +153,8 @@ const listingSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['available', 'pending', 'sold', 'rented'],
-    default: 'available'
+    enum: ['available', 'pending', 'pending_payment', 'sold', 'rented'],
+    default: 'pending_payment'
   },
   visibility: {
     type: String,
@@ -162,10 +162,30 @@ const listingSchema = new mongoose.Schema({
     default: 'public'
   },
   
+  // Payment and subscription info
+  paymentId: {
+    type: String,
+    default: null
+  },
+  paymentStatus: {
+    type: String,
+    enum: ['unpaid', 'pending', 'paid', 'failed', 'expired'],
+    default: 'unpaid'
+  },
+  subscriptionPlan: {
+    type: String,
+    enum: ['1_month', '2_months', '3_months', '6_months', '12_months'],
+    default: null
+  },
+  subscriptionStartDate: {
+    type: Date,
+    default: null
+  },
+  
   // Time-based fields
   expiryDate: {
     type: Date,
-    default: () => new Date(Date.now() + 90 * 24 * 60 * 60 * 1000) // 3 months
+    default: null
   },
   availableFrom: {
     type: Date,
@@ -269,6 +289,27 @@ listingSchema.methods.markAsSold = function() {
   return this.save();
 };
 
+// Static method to update listing after payment
+listingSchema.statics.updateAfterPayment = async function(listingId, planId, durationMonths) {
+  const listing = await this.findById(listingId);
+  if (!listing) throw new Error('Listing not found');
+  
+  // Calculate expiry date based on subscription plan
+  const currentDate = new Date();
+  const expiryDate = new Date(currentDate);
+  expiryDate.setMonth(currentDate.getMonth() + durationMonths);
+  
+  // Update listing fields
+  listing.status = 'available';
+  listing.isDeleted = false;
+  listing.expiryDate = expiryDate;
+  listing.paymentStatus = 'paid';
+  listing.subscriptionPlan = planId;
+  listing.subscriptionStartDate = currentDate;
+  
+  return listing.save();
+};
+
 // Indexes for better query performance
 listingSchema.index({ commune: 1, typeOfListing: 1 });
 listingSchema.index({ ville: 1 });
@@ -280,6 +321,8 @@ listingSchema.index({ isDeleted: 1, status: 1 });
 listingSchema.index({ 'details.bedroom': 1 });
 listingSchema.index({ isFeatured: 1 });
 listingSchema.index({ expiryDate: 1 });
+listingSchema.index({ paymentStatus: 1 });
+listingSchema.index({ subscriptionPlan: 1 });
 listingSchema.index({ createdAt: -1 });
 listingSchema.index({ updatedAt: -1 });
 

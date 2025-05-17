@@ -806,6 +806,254 @@ const deleteListing = async (req, res) => {
   }
 };
 
+const createTemporaryListing = async (req, res) => {
+  try {
+    logger.info("Creating temporary listing", {
+      user: req.user._id,
+      files: req.files?.length || 0
+    });
+
+    // Validate required fields
+    const requiredFields = [
+      'listerFirstName', 'listerLastName', 'listerEmailAddress',
+      'listerPhoneNumber', 'typeOfListing', 'listingType',
+      'price', 'address', 'quartier', 'commune', 'district', 'ville'
+    ];
+
+    const missingFields = requiredFields.filter(field => !req.body[field]);
+    if (missingFields.length > 0) {
+      logger.warn("Missing required fields for temporary listing", { missingFields });
+      return res.status(400).json({
+        success: false,
+        message: 'Missing required fields',
+        missingFields
+      });
+    }
+
+    // Validate images
+    if (!req.files || req.files.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'At least one image is required'
+      });
+    }
+
+    // Process images
+    const imageUrls = req.files.map(file => file.location);
+
+    // Prepare listing data
+    const listingData = {
+      listerFirstName: req.body.listerFirstName,
+      listerLastName: req.body.listerLastName,
+      listerEmailAddress: req.body.listerEmailAddress,
+      listerPhoneNumber: req.body.listerPhoneNumber,
+      typeOfListing: req.body.typeOfListing,
+      listingType: req.body.listingType,
+      address: req.body.address,
+      quartier: req.body.quartier,
+      commune: req.body.commune,
+      district: req.body.district,
+      ville: req.body.ville,
+      currency: req.body.currency || 'USD',
+      negotiable: req.body.negotiable === 'true',
+      images: imageUrls,
+      createdBy: req.user._id,
+      status: 'pending_payment',  // Mark as pending payment
+      isDeleted: true,  // Hide from public view until payment
+      paymentStatus: 'unpaid'
+    };
+
+    // Handle description
+    if (req.body.description) {
+      listingData.description = req.body.description;
+    }
+
+    // Handle price (convert to number and save to appropriate field based on listing type)
+    const price = parseFloat(req.body.price);
+    if (isNaN(price)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid price format',
+        receivedPrice: req.body.price
+      });
+    }
+
+    if (req.body.listingType === 'rent') {
+      listingData.priceMonthly = price;
+    } else if (req.body.listingType === 'daily') {
+      listingData.priceDaily = price;
+    } else if (req.body.listingType === 'sale') {
+      listingData.priceSale = price;
+    }
+
+    // Handle details if provided
+    if (req.body.details) {
+      try {
+        listingData.details = typeof req.body.details === 'string' 
+          ? JSON.parse(req.body.details) 
+          : req.body.details;
+      } catch (err) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid details format',
+          error: err.message
+        });
+      }
+    }
+
+    // Handle features if provided
+    if (req.body.features) {
+      try {
+        listingData.features = typeof req.body.features === 'string'
+          ? JSON.parse(req.body.features)
+          : req.body.features;
+      } catch (err) {
+        logger.warn("Error parsing features", { error: err.message });
+        listingData.features = [];
+      }
+    }
+
+    // Handle nearby amenities if provided
+    if (req.body.nearbyAmenities) {
+      try {
+        listingData.nearbyAmenities = typeof req.body.nearbyAmenities === 'string'
+          ? JSON.parse(req.body.nearbyAmenities)
+          : req.body.nearbyAmenities;
+      } catch (err) {
+        logger.warn("Error parsing nearby amenities", { error: err.message });
+        listingData.nearbyAmenities = [];
+      }
+    }
+
+    logger.info("Creating temporary listing with data", {
+      listingType: listingData.listingType,
+      price: `${price} ${listingData.currency}`,
+      images: listingData.images.length
+    });
+
+    const newListing = new Listing(listingData);
+    const savedListing = await newListing.save();
+
+    logger.info("Temporary listing created successfully", {
+      listingId: savedListing._id
+    });
+
+    return res.status(201).json({
+      success: true,
+      message: "Temporary listing created successfully. Proceed to payment to activate.",
+      listing: savedListing
+    });
+
+  } catch (error) {
+    logger.error("Error creating temporary listing", {
+      error: error.message,
+      stack: error.stack
+    });
+
+    if (error.name === 'ValidationError') {
+      const errors = {};
+      for (const field in error.errors) {
+        errors[field] = error.errors[field].message;
+      }
+      return res.status(400).json({
+        success: false,
+        message: 'Validation failed',
+        validationErrors: errors
+      });
+    }
+
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to create temporary listing',
+      error: error.message
+    });
+  }
+};
+
+const activateListing = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { paymentId } = req.body;
+
+    if (!id || !paymentId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Missing required parameters: id and paymentId'
+      });
+    }
+
+    // Find the listing to activate
+    const listing = await Listing.findOne({
+      _id: id,
+      createdBy: req.user._id
+    });
+
+    if (!listing) {
+      return res.status(404).json({
+        success: false,
+        message: 'Listing not found or not owned by current user'
+      });
+    }
+
+    // Find the payment to verify it exists
+    const payment = await Payment.findOne({
+      $or: [
+        { transactionId: paymentId },
+        { externalId: paymentId }
+      ],
+      listingId: id
+    });
+
+    if (!payment) {
+      logger.error(`Payment not found for listing activation: ${id}, paymentId: ${paymentId}`);
+      return res.status(404).json({
+        success: false,
+        message: 'Payment record not found. Please contact support.'
+      });
+    }
+
+    // Get plan duration from payment record
+    const planDuration = payment.duration || 3; // Default to 3 months if not found
+
+    // Calculate expiry date based on plan duration
+    const currentDate = new Date();
+    const expiryDate = new Date(currentDate);
+    expiryDate.setMonth(currentDate.getMonth() + planDuration);
+
+    // Update listing
+    listing.isDeleted = false;
+    listing.status = 'available';
+    listing.expiryDate = expiryDate;
+    listing.paymentId = paymentId;
+    listing.paymentStatus = 'paid';
+    listing.subscriptionPlan = payment.planId;
+    listing.subscriptionStartDate = currentDate;
+
+    await listing.save();
+
+    logger.info(`Listing activated successfully: ${id}, expires: ${expiryDate}`);
+
+    return res.status(200).json({
+      success: true,
+      message: 'Listing activated successfully',
+      listing: {
+        _id: listing._id,
+        title: listing.title,
+        status: listing.status,
+        expiryDate: listing.expiryDate,
+        subscriptionPlan: listing.subscriptionPlan
+      }
+    });
+  } catch (error) {
+    logger.error('Error activating listing:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to activate listing',
+      error: error.message
+    });
+  }
+};
+
 module.exports = {
   addListing,
   getAllListings,
@@ -813,5 +1061,7 @@ module.exports = {
   deleteListing,
   getMyListings,
   getListing,
-  togglePublishStatus
+  togglePublishStatus,
+  createTemporaryListing,
+  activateListing
 };

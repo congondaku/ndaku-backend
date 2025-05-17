@@ -1,0 +1,8 @@
+{
+  "url": "https://www.maishapay.net/api_docs/en/",
+  "error": {
+    "message": "800C90F001000000:error:0A0000BF:SSL routines:tls_setup_handshake:no protocols available:ssl/statem/statem_lib.c:155:\n",
+    "code": "ERR_SSL_NO_PROTOCOLS_AVAILABLE",
+    "response": null
+  }
+}

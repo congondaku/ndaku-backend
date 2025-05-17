@@ -1,0 +1,9 @@
+{
+  "url": "https://www.maishapay.net/health",
+  "error": {
+    "message": "write EPROTO 800C90F001000000:error:0A0000C6:SSL routines:tls_get_more_records:packet length too long:ssl/record/methods/tls_common.c:663:\n",
+    "code": "EPROTO",
+    "errno": -100,
+    "response": null
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "tlsVersion": "default",
+  "timestamp": "2025-05-16T21:48:42.751Z",
+  "endpoints": [
+    {
+      "url": "https://www.maishapay.net/health",
+      "error": {
+        "message": "write EPROTO 800C90F001000000:error:0A0000C6:SSL routines:tls_get_more_records:packet length too long:ssl/record/methods/tls_common.c:663:\n",
+        "code": "EPROTO",
+        "stack": "Error: write EPROTO 800C90F001000000:error:0A0000C6:SSL routines:tls_get_more_records:packet length too long:ssl/record/methods/tls_common.c:663:\n\n    at AxiosError.from (/Users/youssoufyogue/Desktop/ndaku-backend/node_modules/axios/dist/node/axios.cjs:863:14)\n    at RedirectableRequest.handleRequestError (/Users/youssoufyogue/Desktop/ndaku-backend/node_modules/axios/dist/node/axios.cjs:3187:25)\n    at RedirectableRequest.emit (node:events:519:35)\n    at eventHandlers.<computed> (/Users/youssoufyogue/Desktop/ndaku-backend/node_modules/follow-redirects/index.js:49:24)\n    at ClientRequest.emit (node:events:507:28)\n    at emitErrorEvent (node:_http_client:104:11)\n    at TLSSocket.socketErrorListener (node:_http_client:518:5)\n    at TLSSocket.emit (node:events:507:28)\n    at emitErrorNT (node:internal/streams/destroy:170:8)\n    at emitErrorCloseNT (node:internal/streams/destroy:129:3)\n    at Axios.request (/Users/youssoufyogue/Desktop/ndaku-backend/node_modules/axios/dist/node/axios.cjs:4276:41)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async runTestsWithDefaultTls (/Users/youssoufyogue/Desktop/ndaku-backend/test-maishapay-connection.js:255:24)\n    at async main (/Users/youssoufyogue/Desktop/ndaku-backend/test-maishapay-connection.js:359:28)",
+        "response": null
+      },
+      "tlsVersion": "default",
+      "timestamp": "2025-05-16T21:48:42.888Z",
+      "success": false
+    },
+    {
+      "url": "https://www.maishapay.net/merchant/api/v1",
+      "error": {
+        "message": "write EPROTO 800C90F001000000:error:0A0000C6:SSL routines:tls_get_more_records:packet length too long:ssl/record/methods/tls_common.c:663:\n",
+        "code": "EPROTO",
+        "stack": "Error: write EPROTO 800C90F001000000:error:0A0000C6:SSL routines:tls_get_more_records:packet length too long:ssl/record/methods/tls_common.c:663:\n\n    at AxiosError.from (/Users/youssoufyogue/Desktop/ndaku-backend/node_modules/axios/dist/node/axios.cjs:863:14)\n    at RedirectableRequest.handleRequestError (/Users/youssoufyogue/Desktop/ndaku-backend/node_modules/axios/dist/node/axios.cjs:3187:25)\n    at RedirectableRequest.emit (node:events:519:35)\n    at eventHandlers.<computed> (/Users/youssoufyogue/Desktop/ndaku-backend/node_modules/follow-redirects/index.js:49:24)\n    at ClientRequest.emit (node:events:507:28)\n    at emitErrorEvent (node:_http_client:104:11)\n    at TLSSocket.socketErrorListener (node:_http_client:518:5)\n    at TLSSocket.emit (node:events:507:28)\n    at emitErrorNT (node:internal/streams/destroy:170:8)\n    at emitErrorCloseNT (node:internal/streams/destroy:129:3)\n    at Axios.request (/Users/youssoufyogue/Desktop/ndaku-backend/node_modules/axios/dist/node/axios.cjs:4276:41)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async runTestsWithDefaultTls (/Users/youssoufyogue/Desktop/ndaku-backend/test-maishapay-connection.js:255:24)\n    at async main (/Users/youssoufyogue/Desktop/ndaku-backend/test-maishapay-connection.js:359:28)",
+        "response": null
+      },
+      "tlsVersion": "default",
+      "timestamp": "2025-05-16T21:48:43.016Z",
+      "success": false
+    },
+    {
+      "url": "https://www.maishapay.net/api_docs/en/",
+      "error": {
+        "message": "write EPROTO 800C90F001000000:error:0A0000C6:SSL routines:tls_get_more_records:packet length too long:ssl/record/methods/tls_common.c:663:\n",
+        "code": "EPROTO",
+        "stack": "Error: write EPROTO 800C90F001000000:error:0A0000C6:SSL routines:tls_get_more_records:packet length too long:ssl/record/methods/tls_common.c:663:\n\n    at AxiosError.from (/Users/youssoufyogue/Desktop/ndaku-backend/node_modules/axios/dist/node/axios.cjs:863:14)\n    at RedirectableRequest.handleRequestError (/Users/youssoufyogue/Desktop/ndaku-backend/node_modules/axios/dist/node/axios.cjs:3187:25)\n    at RedirectableRequest.emit (node:events:519:35)\n    at eventHandlers.<computed> (/Users/youssoufyogue/Desktop/ndaku-backend/node_modules/follow-redirects/index.js:49:24)\n    at ClientRequest.emit (node:events:507:28)\n    at emitErrorEvent (node:_http_client:104:11)\n    at TLSSocket.socketErrorListener (node:_http_client:518:5)\n    at TLSSocket.emit (node:events:507:28)\n    at emitErrorNT (node:internal/streams/destroy:170:8)\n    at emitErrorCloseNT (node:internal/streams/destroy:129:3)\n    at Axios.request (/Users/youssoufyogue/Desktop/ndaku-backend/node_modules/axios/dist/node/axios.cjs:4276:41)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async runTestsWithDefaultTls (/Users/youssoufyogue/Desktop/ndaku-backend/test-maishapay-connection.js:255:24)\n    at async main (/Users/youssoufyogue/Desktop/ndaku-backend/test-maishapay-connection.js:359:28)",
+        "response": null
+      },
+      "tlsVersion": "default",
+      "timestamp": "2025-05-16T21:48:43.144Z",
+      "success": false
+    }
+  ]
+}

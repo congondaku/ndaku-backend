@@ -5,3 +5,29 @@
 2025-05-13T15:06:39.993Z info: Deleting image from S3: https://congondaku.s3.amazonaws.com/real-estate-listings/1747096157061-477527112.png
 2025-05-13T15:07:48.564Z info: Deleting image from S3: https://congondaku.s3.amazonaws.com/real-estate-listings/1747146354892-65003245.avif
 2025-05-13T15:07:48.568Z info: Deleting image from S3: https://congondaku.s3.amazonaws.com/real-estate-listings/1747148473688-196018681.jpg
+2025-05-15T21:28:11.606Z error: Add listing error:
+2025-05-15T21:28:19.909Z error: Add listing error:
+2025-05-16T17:39:38.796Z info: Creating temporary listing
+2025-05-16T17:39:38.798Z info: Creating temporary listing with data
+2025-05-16T17:39:38.875Z info: Temporary listing created successfully
+2025-05-16T18:07:02.264Z info: Deleting image from S3: https://congondaku.s3.amazonaws.com/real-estate-listings/1747417178413-669721164.png
+2025-05-16T18:07:06.881Z info: Deleting image from S3: https://congondaku.s3.amazonaws.com/real-estate-listings/1747415678446-769197671.png
+2025-05-16T18:07:11.391Z info: Deleting image from S3: https://congondaku.s3.amazonaws.com/real-estate-listings/1747415436899-620383119.jpg
+2025-05-16T18:07:11.395Z info: Deleting image from S3: https://congondaku.s3.amazonaws.com/real-estate-listings/1747415436900-903252864.jpeg
+2025-05-16T18:07:17.575Z info: Deleting image from S3: https://congondaku.s3.amazonaws.com/real-estate-listings/1747415142721-96047358.jpg
+2025-05-16T18:07:17.581Z info: Deleting image from S3: https://congondaku.s3.amazonaws.com/real-estate-listings/1747415142727-290924801.png
+2025-05-16T18:07:19.862Z info: Deleting image from S3: https://congondaku.s3.amazonaws.com/real-estate-listings/1747344422788-994037714.jpg
+2025-05-16T18:07:19.871Z info: Deleting image from S3: https://congondaku.s3.amazonaws.com/real-estate-listings/1747344422795-922785362.jpg
+2025-05-16T18:08:32.525Z info: Creating temporary listing
+2025-05-16T18:08:32.526Z info: Creating temporary listing with data
+2025-05-16T18:08:32.592Z info: Temporary listing created successfully
+2025-05-16T19:45:05.685Z info: Creating temporary listing
+2025-05-16T19:45:05.687Z info: Creating temporary listing with data
+2025-05-16T19:45:05.709Z error: Error creating temporary listing
+2025-05-16T20:29:00.078Z info: Deleting image from S3: https://congondaku.s3.amazonaws.com/real-estate-listings/1747418911737-242191428.jpg
+2025-05-16T20:30:16.806Z info: Creating temporary listing
+2025-05-16T20:30:16.807Z info: Creating temporary listing with data
+2025-05-16T20:30:16.893Z info: Temporary listing created successfully
+2025-05-16T20:57:50.628Z info: Creating temporary listing
+2025-05-16T20:57:50.631Z info: Creating temporary listing with data
+2025-05-16T20:57:50.723Z info: Temporary listing created successfully

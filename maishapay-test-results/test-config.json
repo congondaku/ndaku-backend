@@ -1,0 +1,56 @@
+{
+  "HOST": "www.maishapay.net",
+  "PORT": 443,
+  "BASE_URL": "https://www.maishapay.net",
+  "TIMEOUT": 10000,
+  "OUTPUT_DIR": "./maishapay-test-results",
+  "MAX_RETRIES": 2,
+  "RETRY_DELAY": 1000,
+  "ENDPOINTS": [
+    {
+      "name": "Health Check",
+      "path": "/health",
+      "expectedStatus": 200
+    },
+    {
+      "name": "API Root",
+      "path": "/merchant/api/v1",
+      "expectedStatus": 200
+    },
+    {
+      "name": "API Docs",
+      "path": "/api_docs/en/",
+      "expectedStatus": 200,
+      "contentType": "text/html"
+    },
+    {
+      "name": "Login Endpoint",
+      "path": "/merchant/api/v1/login",
+      "method": "POST",
+      "expectedStatus": 401
+    }
+  ],
+  "TLS_VERSIONS": [
+    {
+      "version": "TLSv1.3",
+      "method": "TLSv1_3_method"
+    },
+    {
+      "version": "TLSv1.2",
+      "method": "TLSv1_2_method"
+    },
+    {
+      "version": "TLSv1.1",
+      "method": "TLSv1_1_method"
+    },
+    {
+      "version": "TLSv1",
+      "method": "TLSv1_method"
+    }
+  ],
+  "DEFAULT_HEADERS": {
+    "User-Agent": "MaishaPayTester/2.0",
+    "Accept": "application/json, text/html",
+    "Accept-Language": "en-US,en;q=0.9"
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "url": "https://www.maishapay.net/api_docs/en/",
+  "error": {
+    "message": "Unknown method: TLSv1_3_method",
+    "code": "ERR_TLS_INVALID_PROTOCOL_METHOD",
+    "response": null
+  }
+}

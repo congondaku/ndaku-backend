@@ -1,0 +1,11 @@
+{
+  "date": "2025-05-16T21:33:32.459Z",
+  "nodeVersion": "v23.7.0",
+  "platform": "darwin",
+  "tlsVersions": [
+    "TLSv1.3",
+    "TLSv1.2",
+    "TLSv1.1",
+    "TLSv1"
+  ]
+}

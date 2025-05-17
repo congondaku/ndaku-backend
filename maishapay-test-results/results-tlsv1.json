@@ -1,0 +1,53 @@
+{
+  "tlsVersion": "TLSv1",
+  "timestamp": "2025-05-16T21:45:06.487Z",
+  "endpoints": [
+    {
+      "url": "https://www.maishapay.net/health",
+      "error": {
+        "message": "800C90F001000000:error:0A0000BF:SSL routines:tls_setup_handshake:no protocols available:ssl/statem/statem_lib.c:155:\n",
+        "code": "ERR_SSL_NO_PROTOCOLS_AVAILABLE",
+        "stack": "Error: 800C90F001000000:error:0A0000BF:SSL routines:tls_setup_handshake:no protocols available:ssl/statem/statem_lib.c:155:\n\n    at AxiosError.from (/Users/youssoufyogue/Desktop/ndaku-backend/node_modules/axios/dist/node/axios.cjs:863:14)\n    at RedirectableRequest.handleRequestError (/Users/youssoufyogue/Desktop/ndaku-backend/node_modules/axios/dist/node/axios.cjs:3187:25)\n    at RedirectableRequest.emit (node:events:519:35)\n    at eventHandlers.<computed> (/Users/youssoufyogue/Desktop/ndaku-backend/node_modules/follow-redirects/index.js:49:24)\n    at ClientRequest.emit (node:events:507:28)\n    at emitErrorEvent (node:_http_client:104:11)\n    at TLSSocket.socketErrorListener (node:_http_client:518:5)\n    at TLSSocket.emit (node:events:507:28)\n    at emitErrorNT (node:internal/streams/destroy:170:8)\n    at emitErrorCloseNT (node:internal/streams/destroy:129:3)\n    at Axios.request (/Users/youssoufyogue/Desktop/ndaku-backend/node_modules/axios/dist/node/axios.cjs:4276:41)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async makeRequest (/Users/youssoufyogue/Desktop/ndaku-backend/test-maishapay-connection.js:160:24)\n    at async testEndpoint (/Users/youssoufyogue/Desktop/ndaku-backend/test-maishapay-connection.js:199:22)\n    at async runTestsForTlsVersion (/Users/youssoufyogue/Desktop/ndaku-backend/test-maishapay-connection.js:270:20)\n    at async main (/Users/youssoufyogue/Desktop/ndaku-backend/test-maishapay-connection.js:461:23)",
+        "response": null
+      },
+      "tlsVersion": "TLSv1",
+      "timestamp": "2025-05-16T21:45:09.010Z"
+    },
+    {
+      "url": "https://www.maishapay.net/merchant/api/v1",
+      "error": {
+        "message": "800C90F001000000:error:0A0000BF:SSL routines:tls_setup_handshake:no protocols available:ssl/statem/statem_lib.c:155:\n",
+        "code": "ERR_SSL_NO_PROTOCOLS_AVAILABLE",
+        "stack": "Error: 800C90F001000000:error:0A0000BF:SSL routines:tls_setup_handshake:no protocols available:ssl/statem/statem_lib.c:155:\n\n    at AxiosError.from (/Users/youssoufyogue/Desktop/ndaku-backend/node_modules/axios/dist/node/axios.cjs:863:14)\n    at RedirectableRequest.handleRequestError (/Users/youssoufyogue/Desktop/ndaku-backend/node_modules/axios/dist/node/axios.cjs:3187:25)\n    at RedirectableRequest.emit (node:events:519:35)\n    at eventHandlers.<computed> (/Users/youssoufyogue/Desktop/ndaku-backend/node_modules/follow-redirects/index.js:49:24)\n    at ClientRequest.emit (node:events:507:28)\n    at emitErrorEvent (node:_http_client:104:11)\n    at TLSSocket.socketErrorListener (node:_http_client:518:5)\n    at TLSSocket.emit (node:events:507:28)\n    at emitErrorNT (node:internal/streams/destroy:170:8)\n    at emitErrorCloseNT (node:internal/streams/destroy:129:3)\n    at Axios.request (/Users/youssoufyogue/Desktop/ndaku-backend/node_modules/axios/dist/node/axios.cjs:4276:41)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async makeRequest (/Users/youssoufyogue/Desktop/ndaku-backend/test-maishapay-connection.js:160:24)\n    at async testEndpoint (/Users/youssoufyogue/Desktop/ndaku-backend/test-maishapay-connection.js:199:22)\n    at async runTestsForTlsVersion (/Users/youssoufyogue/Desktop/ndaku-backend/test-maishapay-connection.js:270:20)\n    at async main (/Users/youssoufyogue/Desktop/ndaku-backend/test-maishapay-connection.js:461:23)",
+        "response": null
+      },
+      "tlsVersion": "TLSv1",
+      "timestamp": "2025-05-16T21:45:11.389Z"
+    },
+    {
+      "url": "https://www.maishapay.net/api_docs/en/",
+      "error": {
+        "message": "800C90F001000000:error:0A0000BF:SSL routines:tls_setup_handshake:no protocols available:ssl/statem/statem_lib.c:155:\n",
+        "code": "ERR_SSL_NO_PROTOCOLS_AVAILABLE",
+        "stack": "Error: 800C90F001000000:error:0A0000BF:SSL routines:tls_setup_handshake:no protocols available:ssl/statem/statem_lib.c:155:\n\n    at AxiosError.from (/Users/youssoufyogue/Desktop/ndaku-backend/node_modules/axios/dist/node/axios.cjs:863:14)\n    at RedirectableRequest.handleRequestError (/Users/youssoufyogue/Desktop/ndaku-backend/node_modules/axios/dist/node/axios.cjs:3187:25)\n    at RedirectableRequest.emit (node:events:519:35)\n    at eventHandlers.<computed> (/Users/youssoufyogue/Desktop/ndaku-backend/node_modules/follow-redirects/index.js:49:24)\n    at ClientRequest.emit (node:events:507:28)\n    at emitErrorEvent (node:_http_client:104:11)\n    at TLSSocket.socketErrorListener (node:_http_client:518:5)\n    at TLSSocket.emit (node:events:507:28)\n    at emitErrorNT (node:internal/streams/destroy:170:8)\n    at emitErrorCloseNT (node:internal/streams/destroy:129:3)\n    at Axios.request (/Users/youssoufyogue/Desktop/ndaku-backend/node_modules/axios/dist/node/axios.cjs:4276:41)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async makeRequest (/Users/youssoufyogue/Desktop/ndaku-backend/test-maishapay-connection.js:160:24)\n    at async testEndpoint (/Users/youssoufyogue/Desktop/ndaku-backend/test-maishapay-connection.js:199:22)\n    at async runTestsForTlsVersion (/Users/youssoufyogue/Desktop/ndaku-backend/test-maishapay-connection.js:270:20)\n    at async main (/Users/youssoufyogue/Desktop/ndaku-backend/test-maishapay-connection.js:461:23)",
+        "response": null
+      },
+      "tlsVersion": "TLSv1",
+      "timestamp": "2025-05-16T21:45:13.782Z"
+    },
+    {
+      "url": "https://www.maishapay.net/merchant/api/v1/login",
+      "error": {
+        "message": "800C90F001000000:error:0A0000BF:SSL routines:tls_setup_handshake:no protocols available:ssl/statem/statem_lib.c:155:\n",
+        "code": "ERR_SSL_NO_PROTOCOLS_AVAILABLE",
+        "stack": "Error: 800C90F001000000:error:0A0000BF:SSL routines:tls_setup_handshake:no protocols available:ssl/statem/statem_lib.c:155:\n\n    at AxiosError.from (/Users/youssoufyogue/Desktop/ndaku-backend/node_modules/axios/dist/node/axios.cjs:863:14)\n    at RedirectableRequest.handleRequestError (/Users/youssoufyogue/Desktop/ndaku-backend/node_modules/axios/dist/node/axios.cjs:3187:25)\n    at RedirectableRequest.emit (node:events:519:35)\n    at eventHandlers.<computed> (/Users/youssoufyogue/Desktop/ndaku-backend/node_modules/follow-redirects/index.js:49:24)\n    at ClientRequest.emit (node:events:507:28)\n    at emitErrorEvent (node:_http_client:104:11)\n    at TLSSocket.socketErrorListener (node:_http_client:518:5)\n    at TLSSocket.emit (node:events:507:28)\n    at emitErrorNT (node:internal/streams/destroy:170:8)\n    at emitErrorCloseNT (node:internal/streams/destroy:129:3)\n    at Axios.request (/Users/youssoufyogue/Desktop/ndaku-backend/node_modules/axios/dist/node/axios.cjs:4276:41)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async makeRequest (/Users/youssoufyogue/Desktop/ndaku-backend/test-maishapay-connection.js:160:24)\n    at async testEndpoint (/Users/youssoufyogue/Desktop/ndaku-backend/test-maishapay-connection.js:199:22)\n    at async runTestsForTlsVersion (/Users/youssoufyogue/Desktop/ndaku-backend/test-maishapay-connection.js:270:20)\n    at async main (/Users/youssoufyogue/Desktop/ndaku-backend/test-maishapay-connection.js:461:23)",
+        "response": null
+      },
+      "tlsVersion": "TLSv1",
+      "timestamp": "2025-05-16T21:45:16.256Z"
+    }
+  ],
+  "tlsConnection": {
+    "error": "800C90F001000000:error:0A0000BF:SSL routines:tls_setup_handshake:no protocols available:ssl/statem/statem_lib.c:155:\n"
+  }
+}

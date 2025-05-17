@@ -232,4 +232,93 @@ router.patch('/:id/toggle-status', listingController.togglePublishStatus);
 // Delete listing permanently
 router.delete('/:id', listingController.deleteListing);
 
+router.post(
+  '/create-temporary',
+  authenticate,
+  upload.array('images', 10),
+  handleMulterError,
+  listingController.createTemporaryListing
+);
+
+router.post(
+  '/activate/:id',
+  authenticate,
+  async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { paymentId } = req.body;
+
+      // Validate parameters
+      if (!paymentId) {
+        return res.status(400).json({
+          success: false,
+          message: 'Payment ID is required'
+        });
+      }
+
+      // Find and validate the listing
+      const listing = await Listing.findOne({
+        _id: id,
+        createdBy: req.user._id
+      });
+
+      if (!listing) {
+        return res.status(404).json({
+          success: false,
+          message: 'Listing not found or not owned by you'
+        });
+      }
+
+      // Look up the payment to get plan details
+      const payment = await Payment.findOne({
+        $or: [
+          { transactionId: paymentId },
+          { externalId: paymentId }
+        ],
+        listingId: id
+      });
+
+      if (!payment) {
+        return res.status(404).json({
+          success: false,
+          message: 'Payment record not found'
+        });
+      }
+
+      // Get plan duration from payment
+      const planDuration = payment.duration || 3; // Default to 3 months if not found
+
+      // Calculate expiry date based on plan duration
+      const currentDate = new Date();
+      const expiryDate = new Date(currentDate);
+      expiryDate.setMonth(currentDate.getMonth() + planDuration);
+
+      // Update the listing
+      listing.status = 'available';
+      listing.isDeleted = false;
+      listing.expiryDate = expiryDate;
+      listing.paymentId = paymentId;
+      listing.paymentStatus = 'paid';
+      listing.subscriptionPlan = payment.planId;
+      listing.subscriptionStartDate = currentDate;
+
+      await listing.save();
+
+      return res.json({
+        success: true,
+        message: 'Listing activated successfully',
+        listing
+      });
+
+    } catch (error) {
+      console.error('Error activating listing:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to activate listing',
+        error: error.message
+      });
+    }
+  }
+);
+
 module.exports = router;

@@ -20,6 +20,7 @@ const cors = require("cors");
 const userRoutes = require("./routes/user-routes");
 const listingRoutes = require("./routes/listing-routes");
 const adminRoutes = require("./routes/adminRoutes");
+const paymentRoutes = require("./routes/paymentRoutes"); // Add this import
 const winston = require("winston");
 const fs = require("fs");
 
@@ -37,9 +38,8 @@ const logger = winston.createLogger({
   format: winston.format.combine(
     winston.format.timestamp(),
     winston.format.printf(({ level, message, timestamp }) => {
-      return `${timestamp} ${level}: ${
-        typeof message === "object" ? JSON.stringify(message, null, 2) : message
-      }`;
+      return `${timestamp} ${level}: ${typeof message === "object" ? JSON.stringify(message, null, 2) : message
+        }`;
     })
   ),
   defaultMeta: { service: "listing-service" },
@@ -56,11 +56,11 @@ const logListingData = (req, res, next) => {
       requestBody: req.body,
       files: req.files
         ? req.files.map((file) => ({
-            fieldname: file.fieldname,
-            originalname: file.originalname,
-            mimetype: file.mimetype,
-            size: file.size,
-          }))
+          fieldname: file.fieldname,
+          originalname: file.originalname,
+          mimetype: file.mimetype,
+          size: file.size,
+        }))
         : "No files",
     });
 
@@ -85,7 +85,7 @@ const logListingData = (req, res, next) => {
   }
 
   // Add error logging for listings endpoints
-  if (req.path.includes("/listings")) {
+  if (req.path.includes("/listings") || req.path.includes("/payments")) {
     const originalSend = res.send;
     const originalJson = res.json;
     const originalStatus = res.status;
@@ -142,7 +142,11 @@ app.use(logListingData);
 app.use("/api/users", userRoutes);
 app.use("/api/listings", listingRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/payments", paymentRoutes);
+app.use("/payments", paymentRoutes); 
 app.use("/listing", require("./routes/listing-routes"));
+
+// This should remain last to catch undefined routes
 app.use("/api", (req, res) => {
   res.status(404).json({ error: "API endpoint not found" });
 });
@@ -202,3 +206,4 @@ mongoose
     logger.error("❌ MongoDB connection error:", err.message);
     process.exit(1);
   });
+  

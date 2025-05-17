@@ -1,0 +1,68 @@
+{
+  "timestamp": "2025-05-16T21:48:43.147Z",
+  "nodeVersion": "v23.11.0",
+  "platform": "darwin",
+  "host": "www.maishapay.net",
+  "results": {
+    "TLSv1.2": {
+      "tlsConnection": "failed",
+      "endpoints": {
+        "Health Check": {
+          "status": "failed",
+          "statusCode": "N/A",
+          "duration": "N/A"
+        },
+        "API Root": {
+          "status": "failed",
+          "statusCode": "N/A",
+          "duration": "N/A"
+        },
+        "API Docs": {
+          "status": "failed",
+          "statusCode": "N/A",
+          "duration": "N/A"
+        }
+      }
+    },
+    "TLSv1.1": {
+      "tlsConnection": "failed",
+      "endpoints": {
+        "Health Check": {
+          "status": "failed",
+          "statusCode": "N/A",
+          "duration": "N/A"
+        },
+        "API Root": {
+          "status": "failed",
+          "statusCode": "N/A",
+          "duration": "N/A"
+        },
+        "API Docs": {
+          "status": "failed",
+          "statusCode": "N/A",
+          "duration": "N/A"
+        }
+      }
+    },
+    "default": {
+      "tlsConnection": "success",
+      "endpoints": {
+        "Health Check": {
+          "status": "failed",
+          "statusCode": "N/A",
+          "duration": "N/A"
+        },
+        "API Root": {
+          "status": "failed",
+          "statusCode": "N/A",
+          "duration": "N/A"
+        },
+        "API Docs": {
+          "status": "failed",
+          "statusCode": "N/A",
+          "duration": "N/A"
+        }
+      }
+    }
+  }
+}
