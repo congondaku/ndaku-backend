@@ -4,595 +4,359 @@ const https = require('https');
 const Payment = require('../models/paymentSchema');
 const Listing = require('../models/Listing');
 const logger = require('../config/logger');
-const maishapayConfig = require('../config/maishapay');
 
-// Generate a unique transaction reference
-const generateTransactionReference = () => {
-  return `NDAKU-${crypto.randomBytes(4).toString('hex')}-${Date.now()}`;
+// Configuration
+const CONFIG = {
+  PUBLIC_KEY: process.env.MAISHAPAY_PUBLIC_KEY,
+  SECRET_KEY: process.env.MAISHAPAY_SECRET_KEY,
+  BASE_URL: process.env.MAISHAPAY_BASE_URL || 'https://marchand.maishapay.online/api',
+  GATEWAY_MODE: process.env.NODE_ENV === 'production' ? '1' : '0', // 1 for Production, 0 for Sandbox
+  CALLBACK_URL: process.env.API_BASE_URL ? `${process.env.API_BASE_URL}/api/payments/callback` : 'https://yourdomain.com/callback',
+  USD_TO_CDF_RATE: 2902.50,
+  SUBSCRIPTION_PLANS: {
+    '1_month': { duration: 1, priceUSD: 10 },
+    '2_months': { duration: 2, priceUSD: 15 },
+    '3_months': { duration: 3, priceUSD: 20 },
+    '6_months': { duration: 6, priceUSD: 40 },
+    '12_months': { duration: 12, priceUSD: 70 }
+  }
 };
 
-// Enhanced Maishapay configuration with proper TLS settings
-const MAISHAPAY_CONFIG = {
-  PUBLIC_KEY: process.env.MAISHAPAY_PUBLIC_KEY || maishapayConfig.PUBLIC_KEY,
-  SECRET_KEY: process.env.MAISHAPAY_SECRET_KEY || maishapayConfig.SECRET_KEY,
-  BASE_URL: process.env.MAISHAPAY_BASE_URL || 'https://www.maishapay.net/merchant/api/v1',
-  GATEWAY_MODE: process.env.NODE_ENV === 'production' ? '1' : '0',
-
-  HTTPS_AGENT: new https.Agent({
-    rejectUnauthorized: true,
-    ciphers: [
-      'TLS_AES_256_GCM_SHA384',
-      'TLS_CHACHA20_POLY1305_SHA256',
-      'TLS_AES_128_GCM_SHA256',
-      'ECDHE-RSA-AES128-GCM-SHA256',
-      'ECDHE-ECDSA-AES128-GCM-SHA256'
-    ].join(':'),
-    honorCipherOrder: true
-  })
-};
-
-const USD_TO_CDF_RATE = 2902.50;
-
-const SUBSCRIPTION_PLANS = {
-  '1_month': { duration: 1, priceUSD: 10 },
-  '2_months': { duration: 2, priceUSD: 15 },
-  '3_months': { duration: 3, priceUSD: 20 },
-  '6_months': { duration: 6, priceUSD: 40 },
-  '12_months': { duration: 12, priceUSD: 70 }
-};
-
-// Generate a unique external ID for the payment
-const generateExternalId = () => {
-  const timestamp = Date.now();
-  const randomString = crypto.randomBytes(4).toString('hex');
-  return `NDAKU${timestamp}${randomString}`;
-};
-
-// Convert USD to CDF
-const convertUSDtoCDF = (amountUSD) => {
-  return Math.round(amountUSD * USD_TO_CDF_RATE);
-};
-
-// Helper to normalize phone numbers to Maishapay's expected format
-const formatPhoneNumber = (phone) => {
-  // Ensure phone starts with +243
+// Helper functions
+const generateTransactionReference = () => `NDAKU-${crypto.randomBytes(4).toString('hex').substring(0, 8)}`;
+const generateExternalId = () => `NDAKU-${Date.now()}-${crypto.randomBytes(4).toString('hex').substring(0, 8)}`;
+const convertUSDtoCDF = (amountUSD) => Math.round(amountUSD * CONFIG.USD_TO_CDF_RATE);
+const formatPhone = (phone) => {
   if (phone.startsWith('+243')) return phone;
   if (phone.startsWith('243')) return `+${phone}`;
   return `+243${phone.replace(/\D/g, '').slice(-9)}`;
 };
 
-// Map internal payment methods to Maishapay payment methods
-const mapPaymentMethodToMaishapay = (method) => {
-  const methodMap = {
-    'orange': 'ORANGE_MONEY',
-    'airtel': 'AIRTEL_MONEY',
-    'mpesa': 'MPESA',
-    'card': 'CARD'
-  };
-
-  return methodMap[method] || method.toUpperCase();
-};
-
 /**
- * Initialize a payment transaction
+ * Initialize a mobile money payment
  */
 const initializePayment = async (req, res) => {
   try {
     const { planId, paymentMethod, phoneNumber, listingId } = req.body;
     const user = req.user;
 
-    // 1. Validate input
+    // Validation
     if (!planId || !paymentMethod || !phoneNumber || !listingId) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
-    // 2. Get plan details
-    const plan = SUBSCRIPTION_PLANS[planId];
-    if (!plan) {
-      return res.status(400).json({ error: 'Invalid plan ID' });
-    }
-
-    // 3. Get listing and validate
+    // Get plan details
+    const plan = CONFIG.SUBSCRIPTION_PLANS[planId];
+    if (!plan) return res.status(400).json({ error: 'Invalid plan ID' });
+    
+    // Get listing
     const listing = await Listing.findById(listingId);
-    if (!listing) {
-      return res.status(404).json({ error: 'Listing not found' });
-    }
+    if (!listing) return res.status(404).json({ error: 'Listing not found' });
 
-    // 4. Calculate amounts
-    const amountUSD = plan.priceUSD;
-    const amountCDF = convertUSDtoCDF(amountUSD);
+    // Calculate amount and prepare data
+    const amountCDF = convertUSDtoCDF(plan.priceUSD);
+    const transactionReference = `NDAKU-${Date.now().toString().substring(6)}`;
+    const formattedPhone = formatPhone(phoneNumber);
 
-    // 5. Create identifiers
-    const transactionReference = generateTransactionReference();
-    const externalId = generateExternalId();
-    const formattedPhone = formatPhoneNumber(phoneNumber);
-    const mappedPaymentMethod = mapPaymentMethodToMaishapay(paymentMethod);
-
-    // 6. Prepare Maishapay payload
-    const payload = {
+    // Create the exact payload that works with MaishaPay
+    const maishapayPayload = {
       transactionReference,
-      gatewayMode: MAISHAPAY_CONFIG.GATEWAY_MODE,
-      publicApiKey: MAISHAPAY_CONFIG.PUBLIC_KEY,
-      secretApiKey: MAISHAPAY_CONFIG.SECRET_KEY,
-      order: {
-        motif: `Payment for listing: ${listing.title || listingId}`,
-        amount: amountCDF.toString(),
-        currency: "CDF",
-        customerFullName: user.name || `${listing.listerFirstName} ${listing.listerLastName}` || "Customer",
-        customerEmailAdress: user.email || listing.listerEmailAddress || "user@example.com"
-      },
-      paymentChannel: {
-        provider: mappedPaymentMethod,
-        walletID: formattedPhone,
-        callbackUrl: `${process.env.API_BASE_URL || 'https://api.ndaku.com'}/api/payments/callback`
-      }
+      gatewayMode: "0", // Use "1" for production
+      publicApiKey: CONFIG.PUBLIC_KEY,
+      secretApiKey: CONFIG.SECRET_KEY,
+      amount: amountCDF,
+      currency: "CDF",
+      chanel: "MOBILEMONEY",
+      provider: paymentMethod.toUpperCase(),
+      walletID: formattedPhone
     };
 
-    logger.info('Initializing payment:', {
-      listingId,
-      planId,
-      amountUSD,
-      amountCDF,
-      paymentMethod: mappedPaymentMethod
-    });
-
-    // 7. Call Maishapay API
+    // Call MaishaPay API
     const response = await axios.post(
-      `${MAISHAPAY_CONFIG.BASE_URL}/transaction/initialize`,
-      payload,
+      'https://marchand.maishapay.online/api/payment/rest/vers1.0/merchant',
+      maishapayPayload,
       {
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${MAISHAPAY_CONFIG.SECRET_KEY}`
-        },
-        httpsAgent: MAISHAPAY_CONFIG.HTTPS_AGENT,
-        timeout: 15000 // 15 second timeout
+          'Content-Type': 'application/json'
+        }
       }
     );
 
-    logger.info('Payment initialized successfully:', {
-      transactionId: response.data.transactionId,
-      status: response.data.transactionStatus,
-      cost: response.data.cost
-    });
-
-    // 8. Save payment record with complete information
+    // Create payment record
     const payment = new Payment({
       userId: user._id,
       listingId,
       planId,
       duration: plan.duration,
-      amountUSD,
+      amountUSD: plan.priceUSD,
       amountCDF,
-      amount: response.data.cost.total,
-      currency: response.data.cost.currency,
+      amount: amountCDF,
+      currency: 'CDF',
       paymentMethod,
       phoneNumber: formattedPhone,
-      transactionId: response.data.transactionId,
-      externalId,
-      transactionReference,
-      status: 'pending',
+      transactionId: response.data.data?.transactionId || '',
+      externalId: transactionReference,
+      status: getPaymentStatus(response.data.status, response.data.data?.statusCode),
       responseData: response.data
     });
     await payment.save();
 
-    // 9. Update listing status to pending payment
+    // Update listing status
     await Listing.findByIdAndUpdate(listingId, {
       paymentStatus: 'pending',
       status: 'pending_payment'
     });
 
-    // 10. Return success response
+    // Return response to frontend
     return res.json({
       success: true,
-      transactionId: response.data.transactionId,
-      status: response.data.transactionStatus,
-      data: response.data,
-      paymentId: payment._id
+      data: response.data
     });
-
   } catch (error) {
-    logger.error('Payment initialization error:', {
-      message: error.message,
-      response: error.response?.data,
-      stack: error.stack
-    });
-
-    return res.status(error.response?.status || 500).json({
+    console.error('Payment error:', error.message, error.response?.data);
+    return res.status(500).json({
       success: false,
       error: error.response?.data || error.message
     });
   }
 };
 
-/**
- * Handle webhook notifications from MaishaPay
- */
-const handlePaymentWebhook = async (req, res) => {
-  try {
-    logger.info('Received payment webhook:', req.body);
+// Helper function to determine payment status
+function getPaymentStatus(status, statusCode) {
+  if (status === 200 || statusCode === '200' || statusCode === 200) return 'success';
+  if (status === 201 || statusCode === '201' || statusCode === 201) return 'pending';
+  if (status === 400 || statusCode === '400' || statusCode === 400) return 'failed';
+  return 'pending';
+}
 
-    const {
-      transaction_id,
-      external_id,
-      status,
-      amount
-    } = req.body;
-
-    // 1. Validate webhook data
-    if (!transaction_id && !external_id) {
-      logger.warn('Invalid webhook data: missing identifiers', req.body);
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid webhook data: Missing transaction_id or external_id'
-      });
-    }
-
-    // 2. Find the payment record
-    const payment = await Payment.findOne({
-      $or: [
-        { transactionId: transaction_id },
-        { externalId: external_id }
-      ]
-    });
-
-    if (!payment) {
-      logger.error('Payment not found for webhook', {
-        transaction_id,
-        external_id
-      });
-
-      return res.status(404).json({
-        success: false,
-        message: 'Payment not found'
-      });
-    }
-
-    // 3. Always acknowledge the webhook ASAP to prevent retries
-    res.status(200).json({
-      success: true,
-      message: 'Webhook received'
-    });
-
-    // 4. Process the webhook asynchronously
-    try {
-      // Record previous status
-      const oldStatus = payment.status;
-
-      // Update payment status
-      payment.status = status || payment.status;
-      payment.webhookData = req.body;
-      await payment.save();
-
-      // If payment is successful and status just changed, update listing
-      if (status === 'success' && oldStatus !== 'success') {
-        await updateListingAfterPayment(payment);
-      }
-
-      logger.info('Webhook processing completed successfully', {
-        paymentId: payment._id,
-        status
-      });
-    } catch (processingError) {
-      logger.error('Error processing webhook after acknowledgment:', {
-        error: processingError.message,
-        stack: processingError.stack,
-        paymentId: payment._id
-      });
-    }
-  } catch (error) {
-    logger.error('Payment webhook error:', {
-      error: error.message,
-      stack: error.stack
-    });
-
-    // Always acknowledge the webhook, even on error
-    return res.status(200).json({
-      success: true,
-      message: 'Webhook received but encountered processing error'
-    });
+// Update the status mapping function
+function mapMaishapayStatus(statusCode) {
+  switch (statusCode) {
+    case '200':
+      return 'success';
+    case '201':
+    case '202':
+      return 'pending';
+    case '400':
+    case '500':
+      return 'failed';
+    default:
+      return 'pending';
   }
-};
+}
+
+// Map MaishaPay status to our payment status
+function mapMaishapayStatus(maishapayStatus) {
+  const statusMap = {
+    'SUCCESS': 'success',
+    'APPROVED': 'success',
+    'PENDING': 'pending',
+    'DECLINED': 'failed',
+    'FAILED': 'failed',
+    'CANCELED': 'canceled'
+  };
+  return statusMap[maishapayStatus] || 'pending';
+}
 
 /**
- * Check the status of a payment
+ * Check payment status
  */
 const checkPaymentStatus = async (req, res) => {
   try {
     const { transactionId } = req.params;
-
     if (!transactionId) {
-      return res.status(400).json({
-        success: false,
-        message: 'Transaction ID is required'
-      });
+      return res.status(400).json({ error: 'Transaction ID is required' });
     }
 
-    // Find payment in our database
+    // Find payment
     const payment = await Payment.findOne({
-      $or: [
-        { transactionId },
-        { externalId: transactionId }
-      ]
+      $or: [{ transactionId }, { externalId: transactionId }]
     });
-
     if (!payment) {
-      return res.status(404).json({
-        success: false,
-        message: 'Payment not found'
-      });
+      return res.status(404).json({ error: 'Payment not found' });
     }
 
-    // In development mode, simulate success for easy testing
+    // For development, simulate success
     if (process.env.NODE_ENV === 'development') {
-      // Update status to success
-      const oldStatus = payment.status;
-      payment.status = 'success';
-      await payment.save();
-
-      // If status changed, update listing
-      if (oldStatus !== 'success') {
+      if (payment.status !== 'success') {
+        payment.status = 'success';
+        await payment.save();
         await updateListingAfterPayment(payment);
       }
 
-      return res.status(200).json({
+      return res.json({
         success: true,
         data: {
-          status: 'success',
-          paymentDetails: {
-            amount: payment.amount,
-            currency: payment.currency,
-            paymentMethod: payment.paymentMethod,
-            externalId: payment.externalId,
-            transactionId: payment.transactionId,
-            createdAt: payment.createdAt
-          }
+          transactionId: payment.transactionId,
+          status: payment.status,
+          amount: payment.amount,
+          currency: payment.currency,
+          paymentMethod: payment.paymentMethod,
+          createdAt: payment.createdAt
         }
       });
     }
 
-    // In production, call payment gateway API
+    // In production, check with MaishaPay
     try {
-      // Call Maishapay API to check status with improved error handling
       const response = await axios.get(
-        `${MAISHAPAY_CONFIG.BASE_URL}/transaction/status/${payment.transactionId}`,
+        `${CONFIG.BASE_URL}/payment/transaction/status/${payment.transactionId}`,
         {
           headers: {
-            'Authorization': `Bearer ${MAISHAPAY_CONFIG.SECRET_KEY}`,
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
+            'Authorization': `Bearer ${CONFIG.SECRET_KEY}`,
+            'Content-Type': 'application/json'
           },
-          httpsAgent: MAISHAPAY_CONFIG.HTTPS_AGENT,
           timeout: 10000
         }
       );
 
-      logger.info('Payment status check response:', {
-        transactionId: payment.transactionId,
-        status: response.status,
-        data: response.data
-      });
-
-      // Update payment status in database
-      if (response.data && response.data.status) {
+      // Update payment status
+      if (response.data.data) {
         const oldStatus = payment.status;
-        payment.status = response.data.status.toLowerCase();
-        payment.responseData = {
-          ...payment.responseData,
-          statusCheck: response.data
-        };
-
-        // If payment status changed to success, update listing
-        if (oldStatus !== 'success' && payment.status === 'success') {
-          await updateListingAfterPayment(payment);
-          logger.info('Payment successful, listing activated', {
-            paymentId: payment._id,
-            listingId: payment.listingId
-          });
-        }
-
+        const newStatus = mapMaishapayStatus(response.data.data.status);
+        payment.status = newStatus;
+        payment.responseData = { ...payment.responseData, statusCheck: response.data };
         await payment.save();
+
+        // Activate listing if payment successful
+        if (oldStatus !== 'success' && newStatus === 'success') {
+          await updateListingAfterPayment(payment);
+        }
       }
 
-      return res.status(200).json({
+      return res.json({
         success: true,
         data: {
+          transactionId: payment.transactionId,
           status: payment.status,
-          paymentDetails: {
-            amount: payment.amount,
-            currency: payment.currency,
-            paymentMethod: payment.paymentMethod,
-            externalId: payment.externalId,
-            transactionId: payment.transactionId,
-            createdAt: payment.createdAt
-          },
-          gateway: response.data
+          amount: payment.amount,
+          currency: payment.currency,
+          paymentMethod: payment.paymentMethod,
+          createdAt: payment.createdAt
         }
       });
+
     } catch (apiError) {
       logger.error('Payment gateway status check error:', {
         error: apiError.message,
-        transactionId: payment.transactionId,
-        response: apiError.response?.data
+        transactionId: payment.transactionId
       });
 
-      // Return current status from our database
-      return res.status(200).json({
+      return res.json({
         success: true,
         data: {
+          transactionId: payment.transactionId,
           status: payment.status,
-          paymentDetails: {
-            amount: payment.amount,
-            currency: payment.currency,
-            paymentMethod: payment.paymentMethod,
-            externalId: payment.externalId,
-            transactionId: payment.transactionId,
-            createdAt: payment.createdAt
-          },
-          gatewayError: 'Unable to check status with payment gateway'
+          amount: payment.amount,
+          currency: payment.currency,
+          paymentMethod: payment.paymentMethod,
+          createdAt: payment.createdAt,
+          note: 'Unable to check latest status with payment gateway'
         }
       });
     }
   } catch (error) {
-    logger.error('Payment status check error:', {
-      error: error.message,
-      stack: error.stack
-    });
-
-    return res.status(500).json({
-      success: false,
-      message: 'Failed to check payment status',
-      error: error.message
-    });
+    logger.error('Payment status check error:', { error: error.message });
+    return res.status(500).json({ error: 'Failed to check payment status' });
   }
 };
 
 /**
- * Enhanced function to update listing after payment
+ * Handle webhook from MaishaPay
+ */
+const handlePaymentWebhook = async (req, res) => {
+  try {
+    logger.info('Webhook received:', req.body);
+
+    // MaishaPay can send different webhook formats
+    const transactionId = req.body.transactionId || req.body.data?.transactionId;
+    const status = req.body.transactionStatus || req.body.data?.status;
+
+    if (!transactionId) {
+      logger.warn('Webhook missing transaction ID', req.body);
+      return res.status(400).json({ error: 'Missing transaction ID' });
+    }
+
+    // Find the payment
+    const payment = await Payment.findOne({ transactionId });
+    if (!payment) {
+      logger.warn('Payment not found for transaction ID', { transactionId });
+      return res.status(404).json({ error: 'Payment not found' });
+    }
+
+    // Always acknowledge webhook quickly
+    res.status(200).json({ success: true });
+
+    // Process asynchronously
+    try {
+      // Update payment status
+      const oldStatus = payment.status;
+      const newStatus = mapMaishapayStatus(status);
+      payment.status = newStatus;
+      payment.webhookData = req.body;
+      await payment.save();
+
+      // Update listing if payment successful
+      if (newStatus === 'success' && oldStatus !== 'success') {
+        await updateListingAfterPayment(payment);
+      }
+
+      logger.info('Webhook processed successfully', {
+        transactionId,
+        newStatus,
+        listingId: payment.listingId
+      });
+    } catch (err) {
+      logger.error('Error processing webhook:', { error: err.message });
+    }
+  } catch (error) {
+    logger.error('Webhook handler error:', { error: error.message });
+    return res.status(200).json({ success: true }); // Always acknowledge
+  }
+};
+
+/**
+ * Update listing after successful payment
  */
 const updateListingAfterPayment = async (payment) => {
   try {
-    if (!payment) {
-      throw new Error('Payment is not defined');
-    }
-
     const listing = await Listing.findById(payment.listingId);
-
     if (!listing) {
-      logger.error('Listing not found for payment', {
-        listingId: payment.listingId,
-        paymentId: payment._id
-      });
-      throw new Error(`Listing not found with ID: ${payment.listingId}`);
+      throw new Error(`Listing not found: ${payment.listingId}`);
     }
 
-    // Get plan duration - fallback to payment.duration if available
+    // Calculate expiry date
     const planDuration = payment.duration ||
-      (SUBSCRIPTION_PLANS[payment.planId]?.duration || 3);
-
-    // Calculate new expiry date
+      (CONFIG.SUBSCRIPTION_PLANS[payment.planId]?.duration || 3);
     const currentDate = new Date();
-    const newExpiryDate = new Date(currentDate);
-    newExpiryDate.setMonth(currentDate.getMonth() + planDuration);
+    const expiryDate = new Date();
+    expiryDate.setMonth(currentDate.getMonth() + planDuration);
 
-    // Update listing fields 
+    // Update listing
     listing.status = 'available';
-    listing.isDeleted = false;  
-    listing.expiryDate = newExpiryDate;
+    listing.isDeleted = false;
+    listing.expiryDate = expiryDate;
     listing.paymentStatus = 'paid';
-    listing.paymentId = payment.transactionId || payment.externalId;
+    listing.paymentId = payment.transactionId;
     listing.subscriptionPlan = payment.planId;
     listing.subscriptionStartDate = currentDate;
-
     await listing.save();
 
-    logger.info('Listing updated after successful payment', {
+    logger.info('Listing activated after payment:', {
       listingId: listing._id,
-      expiryDate: newExpiryDate,
-      duration: planDuration,
-      paymentId: payment._id
+      paymentId: payment._id,
+      expiryDate
     });
 
     return listing;
   } catch (error) {
-    logger.error('Error updating listing after payment', {
-      error: error.message,
-      stack: error.stack,
-      paymentId: payment?._id,
-      listingId: payment?.listingId
-    });
+    logger.error('Error updating listing:', { error: error.message });
     throw error;
   }
 };
 
 /**
- * Function to manually activate a listing in development mode
- */
-const devActivateListing = async (req, res) => {
-  // Only available in development mode
-  if (process.env.NODE_ENV !== 'development') {
-    return res.status(403).json({
-      success: false,
-      message: 'This endpoint is only available in development mode'
-    });
-  }
-
-  try {
-    const { listingId } = req.params;
-
-    if (!listingId) {
-      return res.status(400).json({
-        success: false,
-        message: 'Listing ID is required'
-      });
-    }
-
-    const listing = await Listing.findById(listingId);
-    if (!listing) {
-      return res.status(404).json({
-        success: false,
-        message: 'Listing not found'
-      });
-    }
-
-    // Find or create a mock payment
-    let payment = await Payment.findOne({ listingId });
-
-    if (!payment) {
-      // Create a mock payment with all required fields
-      const externalId = `DEV-${Date.now()}`;
-      const transactionId = `DEV-TRANS-${Date.now()}`;
-      
-      payment = new Payment({
-        userId: listing.createdBy,
-        listingId: listing._id,
-        planId: '3_months',
-        duration: 3,
-        amountUSD: 20,
-        amountCDF: convertUSDtoCDF(20),
-        currency: 'USD',
-        amount: 20,
-        paymentMethod: 'orange',
-        phoneNumber: '243123456789',
-        externalId,
-        transactionId,
-        status: 'success'
-      });
-
-      await payment.save();
-    } else {
-      // Update existing payment to success
-      payment.status = 'success';
-      await payment.save();
-    }
-
-    // Activate the listing
-    await updateListingAfterPayment(payment);
-
-    return res.status(200).json({
-      success: true,
-      message: 'Listing activated successfully in development mode',
-      data: {
-        listing: await Listing.findById(listingId),
-        payment
-      }
-    });
-  } catch (error) {
-    logger.error('Dev listing activation error:', {
-      error: error.message,
-      stack: error.stack
-    });
-
-    return res.status(500).json({
-      success: false,
-      message: 'Failed to activate listing',
-      error: error.message
-    });
-  }
-};
-
-/**
- * Get user's payment history
+ * Get payment history for a user
  */
 const getPaymentHistory = async (req, res) => {
   try {
@@ -600,215 +364,63 @@ const getPaymentHistory = async (req, res) => {
       .sort({ createdAt: -1 })
       .populate('listingId', 'title images status paymentStatus expiryDate');
 
-    return res.status(200).json({
+    return res.json({
       success: true,
       data: payments
     });
   } catch (error) {
-    logger.error('Error fetching payment history:', {
-      error: error.message,
-      stack: error.stack
-    });
-
-    return res.status(500).json({
-      success: false,
-      message: 'Failed to fetch payment history',
-      error: error.message
-    });
+    logger.error('Error fetching payment history:', { error: error.message });
+    return res.status(500).json({ error: 'Failed to fetch payment history' });
   }
 };
 
 /**
- * Get available subscription plans
+ * Get subscription plans
  */
 const getSubscriptionPlans = async (req, res) => {
   try {
-    const plansWithCDFPrices = Object.entries(SUBSCRIPTION_PLANS).map(([id, plan]) => ({
+    const plans = Object.entries(CONFIG.SUBSCRIPTION_PLANS).map(([id, plan]) => ({
       id,
       durationMonths: plan.duration,
       priceUSD: plan.priceUSD,
       priceCDF: convertUSDtoCDF(plan.priceUSD)
     }));
 
-    return res.status(200).json({
-      success: true,
-      data: {
-        plans: plansWithCDFPrices,
-        exchangeRate: USD_TO_CDF_RATE
-      }
-    });
-  } catch (error) {
-    logger.error('Error fetching subscription plans:', {
-      error: error.message,
-      stack: error.stack
-    });
-
-    return res.status(500).json({
-      success: false,
-      message: 'Failed to fetch subscription plans',
-      error: error.message
-    });
-  }
-};
-
-/**
- * Test MaishaPay connection
- */
-const testMaishapayConnection = async () => {
-  const testPayload = {
-    transactionReference: `TEST-${Date.now()}`,
-    gatewayMode: MAISHAPAY_CONFIG.GATEWAY_MODE,
-    publicApiKey: MAISHAPAY_CONFIG.PUBLIC_KEY,
-    secretApiKey: MAISHAPAY_CONFIG.SECRET_KEY,
-    order: {
-      motif: "Connection test",
-      amount: "100",
-      currency: "CDF",
-      customerFullName: "Test User",
-      customerEmailAdress: "test@example.com"
-    },
-    paymentChannel: {
-      provider: "MPESA",
-      walletID: "+243810000000"
-    }
-  };
-
-  const response = await axios.post(
-    `${MAISHAPAY_CONFIG.BASE_URL}/transaction/initialize`,
-    testPayload,
-    {
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${MAISHAPAY_CONFIG.SECRET_KEY}`
-      },
-      httpsAgent: MAISHAPAY_CONFIG.HTTPS_AGENT
-    }
-  );
-
-  return response.data;
-};
-
-/**
- * Direct test for MaishaPay API
- */
-const directMaishapayTest = async (req, res) => {
-  try {
-    // Use the payload as-is
-    const payload = req.body;
-    
-    // If listingId is provided, prepare for listing activation
-    const { listingId } = req.body;
-    let listing = null;
-    
-    if (listingId) {
-      listing = await Listing.findById(listingId);
-      if (!listing) {
-        return res.status(404).json({
-          success: false,
-          message: 'Listing not found'
-        });
-      }
-    }
-
-    // Call MaishaPay API
-    const response = await axios.post(
-      `${MAISHAPAY_CONFIG.BASE_URL}/transaction/initialize`,
-      payload,
-      {
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${payload.secretApiKey}`
-        },
-        httpsAgent: MAISHAPAY_CONFIG.HTTPS_AGENT
-      }
-    );
-    
-    // If successful and we have a listing, create a payment and activate listing
-    if (response.data.transactionStatus === 'SUCCESS' && listing) {
-      const externalId = generateExternalId();
-      
-      // Create payment record
-      const payment = new Payment({
-        userId: listing.createdBy,
-        listingId: listing._id,
-        planId: '3_months',
-        duration: 3,
-        amountUSD: 20,
-        amountCDF: convertUSDtoCDF(20),
-        amount: response.data.cost.total,
-        currency: response.data.cost.currency,
-        paymentMethod: 'mpesa',
-        phoneNumber: response.data.recipient?.walletID || '+243810000000',
-        transactionId: response.data.transactionId,
-        externalId,
-        status: 'success',
-        responseData: response.data
-      });
-      
-      await payment.save();
-      
-      // Activate listing
-      await updateListingAfterPayment(payment);
-      
-      return res.json({
-        success: true,
-        data: response.data,
-        message: 'Test payment succeeded and listing updated',
-        listingId,
-        payment: {
-          _id: payment._id,
-          transactionId: payment.transactionId,
-          externalId: payment.externalId
-        }
-      });
-    }
-
-    // Return MaishaPay response
     return res.json({
       success: true,
-      data: response.data
+      data: {
+        plans,
+        exchangeRate: CONFIG.USD_TO_CDF_RATE
+      }
     });
-
   } catch (error) {
-    logger.error('Direct MaishaPay test error:', {
-      message: error.message,
-      response: error.response?.data,
-      stack: error.stack
-    });
-
-    return res.status(error.response?.status || 500).json({
-      success: false,
-      error: error.response?.data || error.message
-    });
+    return res.status(500).json({ error: 'Failed to fetch subscription plans' });
   }
 };
 
 /**
- * Direct test with listing update
+ * Development helper to activate a listing
  */
-const directTestWithListingUpdate = async (req, res) => {
+const devActivateListing = async (req, res) => {
+  if (process.env.NODE_ENV !== 'development') {
+    return res.status(403).json({ error: 'Only available in development mode' });
+  }
+
   try {
-    const { payload, listingId } = req.body;
-    
+    const { listingId } = req.params;
     if (!listingId) {
-      return res.status(400).json({
-        success: false,
-        message: 'Listing ID is required'
-      });
+      return res.status(400).json({ error: 'Listing ID is required' });
     }
-    
+
     const listing = await Listing.findById(listingId);
     if (!listing) {
-      return res.status(404).json({
-        success: false,
-        message: 'Listing not found'
-      });
+      return res.status(404).json({ error: 'Listing not found' });
     }
-    
-    // Create a mock successful payment
+
+    // Create mock payment
     const externalId = generateExternalId();
-    const transactionId = `TEST-${Date.now()}`;
-    
+    const transactionId = `DEV-${Date.now()}`;
+
     const payment = new Payment({
       userId: listing.createdBy,
       listingId,
@@ -816,7 +428,7 @@ const directTestWithListingUpdate = async (req, res) => {
       duration: 3,
       amountUSD: 20,
       amountCDF: convertUSDtoCDF(20),
-      amount: 58050, // 20 USD in CDF
+      amount: 58050,
       currency: 'CDF',
       paymentMethod: 'mpesa',
       phoneNumber: '+243810000000',
@@ -824,37 +436,24 @@ const directTestWithListingUpdate = async (req, res) => {
       externalId,
       status: 'success'
     });
-    
+
     await payment.save();
-    
-    // Activate the listing
+
+    // Activate listing
     await updateListingAfterPayment(payment);
-    
+
     return res.json({
       success: true,
-      message: 'Test payment created and listing activated',
+      message: 'Listing activated in development mode',
       data: {
         listing: await Listing.findById(listingId),
         payment
       }
     });
-    
   } catch (error) {
-    logger.error('Direct test with listing update error:', {
-      message: error.message,
-      stack: error.stack
-    });
-    
-    return res.status(500).json({
-      success: false,
-      error: error.message
-    });
+    logger.error('Dev activation error:', { error: error.message });
+    return res.status(500).json({ error: 'Failed to activate listing' });
   }
-};
-
-// Legacy webhook handler for backward compatibility
-const handleWebhook = async (req, res) => {
-  return handlePaymentWebhook(req, res);
 };
 
 module.exports = {
@@ -863,10 +462,6 @@ module.exports = {
   handlePaymentWebhook,
   getPaymentHistory,
   getSubscriptionPlans,
-  updateListingAfterPayment,
   devActivateListing,
-  handleWebhook,
-  testMaishapayConnection,
-  directMaishapayTest,
-  directTestWithListingUpdate
+  updateListingAfterPayment
 };
