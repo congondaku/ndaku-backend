@@ -312,6 +312,10 @@ const getAllListings = async (req, res) => {
 
     const filter = { isDeleted: false };
 
+    if (req.query.activeOnly !== 'false') {
+      filter.activeSubscription = true;
+    }
+
     // Apply location filters
     if (commune) filter.commune = commune;
     if (ville) filter.ville = ville;
@@ -889,8 +893,8 @@ const createTemporaryListing = async (req, res) => {
     // Handle details if provided
     if (req.body.details) {
       try {
-        listingData.details = typeof req.body.details === 'string' 
-          ? JSON.parse(req.body.details) 
+        listingData.details = typeof req.body.details === 'string'
+          ? JSON.parse(req.body.details)
           : req.body.details;
       } catch (err) {
         return res.status(400).json({
@@ -1028,6 +1032,7 @@ const activateListing = async (req, res) => {
     listing.paymentStatus = 'paid';
     listing.subscriptionPlan = payment.planId;
     listing.subscriptionStartDate = currentDate;
+    listing.activeSubscription = true;
 
     await listing.save();
 

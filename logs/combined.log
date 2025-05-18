@@ -86,3 +86,32 @@
 2025-05-17T20:18:24.468Z info: Initializing Maishapay payment
 2025-05-17T20:18:24.607Z error: Payment API error: write EPROTO 800C90F001000000:error:0A0000C6:SSL routines:tls_get_more_records:packet length too long:ssl/record/methods/tls_common.c:663:
 
+2025-05-18T21:03:23.701Z info: Initializing payment with MaishaPay:
+2025-05-18T21:03:25.643Z info: MaishaPay response:
+2025-05-18T21:05:47.366Z error: Payment gateway status check error:
+2025-05-18T21:11:22.064Z info: Initializing payment with MaishaPay:
+2025-05-18T21:11:24.015Z info: MaishaPay response:
+2025-05-18T21:14:29.739Z info: Initializing payment with MaishaPay:
+2025-05-18T21:14:31.666Z info: MaishaPay response:
+2025-05-18T21:21:00.212Z info: Initializing payment with MaishaPay:
+2025-05-18T21:21:02.315Z info: MaishaPay response:
+2025-05-18T21:24:57.954Z error: Payment gateway status check error:
+2025-05-18T22:07:33.938Z info: Initializing payment with MaishaPay:
+2025-05-18T22:07:36.046Z info: MaishaPay response:
+2025-05-18T23:20:32.135Z error: Payment gateway status check error:
+2025-05-18T23:21:22.698Z info: Initializing payment with MaishaPay:
+2025-05-18T23:21:24.454Z info: MaishaPay response:
+2025-05-18T23:27:55.966Z info: Initializing payment with MaishaPay:
+2025-05-18T23:27:58.007Z info: MaishaPay response:
+2025-05-18T23:27:58.009Z info: Determining payment status from:
+2025-05-18T23:27:58.009Z info: Determined payment status:
+2025-05-18T23:27:58.133Z info: Updating listing after payment:
+2025-05-18T23:27:58.195Z info: Listing activated after payment:
+2025-05-18T23:27:58.196Z info: Listing updated to success after payment initialization
+2025-05-18T23:32:20.065Z info: Initializing payment with MaishaPay:
+2025-05-18T23:32:22.069Z info: MaishaPay response:
+2025-05-18T23:32:22.070Z info: Determining payment status from:
+2025-05-18T23:32:22.070Z info: Determined payment status:
+2025-05-18T23:32:22.194Z info: Updating listing after payment:
+2025-05-18T23:32:22.254Z info: Listing activated after payment:
+2025-05-18T23:32:22.255Z info: Listing updated to success after payment initialization

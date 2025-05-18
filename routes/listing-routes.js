@@ -5,8 +5,9 @@ const listingController = require('../controllers/listing-controller');
 const locationData = require('../utils/locationData');
 const villesData = require('../utils/villesData');
 const multer = require('multer');
-const { upload, s3 } = require('../config/s3'); // Updated to use s3 config
+const { upload, s3 } = require('../config/s3');
 const Listing = require('../models/Listing');
+const Payment = require('../models/paymentSchema');
 
 /**
  * Middleware to handle multer errors

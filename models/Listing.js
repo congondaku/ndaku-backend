@@ -181,7 +181,10 @@ const listingSchema = new mongoose.Schema({
     type: Date,
     default: null
   },
-  
+    activeSubscription: {
+    type: Boolean,
+    default: false
+  },
   // Time-based fields
   expiryDate: {
     type: Date,
@@ -325,6 +328,7 @@ listingSchema.index({ paymentStatus: 1 });
 listingSchema.index({ subscriptionPlan: 1 });
 listingSchema.index({ createdAt: -1 });
 listingSchema.index({ updatedAt: -1 });
+listingSchema.index({ expiryDate: 1, activeSubscription: 1 });
 
 // Text index for search functionality
 listingSchema.index({

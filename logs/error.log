@@ -27,3 +27,6 @@
 
 2025-05-17T20:18:24.607Z error: Payment API error: write EPROTO 800C90F001000000:error:0A0000C6:SSL routines:tls_get_more_records:packet length too long:ssl/record/methods/tls_common.c:663:
 
+2025-05-18T21:05:47.366Z error: Payment gateway status check error:
+2025-05-18T21:24:57.954Z error: Payment gateway status check error:
+2025-05-18T23:20:32.135Z error: Payment gateway status check error:

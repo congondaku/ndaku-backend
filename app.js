@@ -1,5 +1,7 @@
 const dotenv = require("dotenv");
 const path = require("path");
+const cron = require('node-cron');
+const Listing = require('./models/Listing');
 
 // Use explicit path to ensure .env is found
 dotenv.config({ path: path.resolve(__dirname, "./.env") });
@@ -20,7 +22,7 @@ const cors = require("cors");
 const userRoutes = require("./routes/user-routes");
 const listingRoutes = require("./routes/listing-routes");
 const adminRoutes = require("./routes/adminRoutes");
-const paymentRoutes = require("./routes/paymentRoutes"); // Add this import
+const paymentRoutes = require("./routes/paymentRoutes");
 const winston = require("winston");
 const fs = require("fs");
 
@@ -47,6 +49,65 @@ const logger = winston.createLogger({
     new winston.transports.Console(), // Log to console always
   ],
 });
+
+// Basic implementation of logMetric - replace with your actual metrics system
+function logMetric(metricName, metricData) {
+  logger.info(`METRIC: ${metricName}`, metricData);
+  // In production, you would send this to your metrics system
+  // Example: datadog.sendMetric(metricName, metricData)
+}
+
+// Basic implementation of sendAlert - replace with your actual alerting system
+function sendAlert(alertTitle, alertData) {
+  logger.error(`ALERT: ${alertTitle}`, alertData);
+  // In production, you would send this to your alerting system
+  // Example: slack.sendAlert(alertTitle, alertData) or email.sendAlert(alertTitle, alertData)
+}
+
+// Subscription expiration checker
+const updateExpiredSubscriptions = async () => {
+  const startTime = Date.now();
+  let success = false;
+  let error = null;
+  let updatedCount = 0;
+  
+  try {
+    const currentDate = new Date();
+    
+    const result = await Listing.updateMany(
+      { expiryDate: { $lt: currentDate }, activeSubscription: true },
+      { $set: { activeSubscription: false } }
+    );
+    
+    updatedCount = result.modifiedCount;
+    success = true;
+  } catch (err) {
+    error = err;
+    logger.error('Error updating subscriptions:', err);
+  }
+  
+  const duration = Date.now() - startTime;
+  
+  // Log metrics for monitoring tools like Datadog, New Relic, etc.
+  logMetric('subscription_update_job', {
+    success,
+    duration,
+    updatedCount,
+    errorMessage: error ? error.message : null
+  });
+  
+  // Alert if the job fails or takes too long
+  if (!success || duration > 300000) { // 5 minutes
+    sendAlert('Subscription update job issue', {
+      success,
+      duration,
+      updatedCount,
+      error: error ? `${error.message}\n${error.stack}` : null
+    });
+  }
+  
+  return { success, updatedCount, duration };
+};
 
 // Logging middleware for listing operations
 const logListingData = (req, res, next) => {
@@ -130,23 +191,28 @@ const logListingData = (req, res, next) => {
 // App setup
 const app = express();
 
-// Middleware
+// FIRST: Essential middleware
 app.use(cors());
 app.use(express.json());
 app.use("/uploads", express.static("uploads"));
 
-// Add logging middleware
+// SECOND: Logging middleware
+app.use((req, res, next) => {
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
+  next();
+});
 app.use(logListingData);
 
-// API routes
+// THIRD: Register routes
+console.log('Registering payment routes at /api/payments');
+app.use("/api/payments", paymentRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/listings", listingRoutes);
 app.use("/api/admin", adminRoutes);
-app.use("/api/payments", paymentRoutes);
-app.use("/payments", paymentRoutes); 
+app.use("/payments", paymentRoutes);
 app.use("/listing", require("./routes/listing-routes"));
 
-// This should remain last to catch undefined routes
+// LAST: Error handling and catch-all routes
 app.use("/api", (req, res) => {
   res.status(404).json({ error: "API endpoint not found" });
 });
@@ -166,7 +232,7 @@ if (process.env.NODE_ENV === "production") {
 }
 
 // Database & Server connection
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 5002;
 const MONGO_URI = process.env.MONGODB_URI;
 
 // Add error handling for uncaught exceptions
@@ -196,14 +262,39 @@ console.warn = function () {
   logger.warn.apply(logger, arguments);
 };
 
+// Set up the job system
+const setupJobSystem = () => {
+  if (process.env.NODE_ENV === 'production') {
+    // In production, set up a dedicated worker process/service for this job
+    if (process.env.WORKER_PROCESS === 'true') {
+      cron.schedule('0 1 * * *', async () => {
+        logger.info('Running subscription update job (production worker)');
+        await updateExpiredSubscriptions();
+      });
+      logger.info('Worker process: Subscription update job scheduled');
+    }
+  } else {
+    // In development, just run it directly
+    cron.schedule('0 1 * * *', async () => {
+      logger.info('Running subscription update job (development)');
+      await updateExpiredSubscriptions();
+    });
+    logger.info('Development: Subscription update job scheduled');
+  }
+};
+
 mongoose
-  .connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+  .connect(MONGO_URI)  // Removed deprecated options
   .then(() => {
     logger.info("✅ Connected to MongoDB");
     app.listen(PORT, () => logger.info(`🚀 Server running on port ${PORT}`));
+    
+    // Set up the job system
+    if (process.env.DISABLE_CRON_JOBS !== 'true') {
+      setupJobSystem();
+    }
   })
   .catch((err) => {
     logger.error("❌ MongoDB connection error:", err.message);
     process.exit(1);
   });
-  
