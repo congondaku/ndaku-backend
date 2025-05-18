@@ -31,3 +31,58 @@
 2025-05-16T20:57:50.628Z info: Creating temporary listing
 2025-05-16T20:57:50.631Z info: Creating temporary listing with data
 2025-05-16T20:57:50.723Z info: Temporary listing created successfully
+2025-05-17T19:12:14.366Z info: Payment initialization request received
+2025-05-17T19:12:14.368Z error: Payment initialization error: Cast to ObjectId failed for value "demo123" (type string) at path "_id" for model "Listing"
+2025-05-17T19:39:44.044Z info: Payment initialization request received
+2025-05-17T19:39:44.287Z info: Initializing Maishapay payment
+2025-05-17T19:39:44.303Z error: Payment API error: TLS protocol version "TLSv1.2" conflicts with secureProtocol "TLSv1_2_method"
+2025-05-17T19:41:47.864Z info: Payment initialization request received
+2025-05-17T19:41:48.037Z info: Initializing Maishapay payment
+2025-05-17T19:41:48.047Z error: Payment API error: TLS protocol version "TLSv1.2" conflicts with secureProtocol "TLSv1_2_method"
+2025-05-17T19:53:23.821Z info: Payment initialization request received
+2025-05-17T19:53:24.004Z info: Initializing Maishapay payment
+2025-05-17T19:53:24.015Z error: Payment API error: TLS protocol version "TLSv1.2" conflicts with secureProtocol "TLSv1_2_method"
+2025-05-17T19:56:29.174Z info: Payment initialization request received
+2025-05-17T19:56:29.357Z info: Initializing Maishapay payment
+2025-05-17T19:56:30.256Z error: Payment API error: write EPROTO 800C90F001000000:error:0A0000C6:SSL routines:tls_get_more_records:packet length too long:ssl/record/methods/tls_common.c:663:
+
+2025-05-17T20:05:41.822Z info: Payment initialization request received
+2025-05-17T20:05:42.004Z info: Initializing Maishapay payment
+2025-05-17T20:05:42.150Z error: Payment API error: write EPROTO 800C90F001000000:error:0A0000C6:SSL routines:tls_get_more_records:packet length too long:ssl/record/methods/tls_common.c:663:
+
+2025-05-17T20:08:17.699Z info: Payment initialization request received
+2025-05-17T20:08:17.858Z info: Initializing Maishapay payment
+2025-05-17T20:08:18.027Z error: Payment API error: write EPROTO 800C90F001000000:error:0A0000C6:SSL routines:tls_get_more_records:packet length too long:ssl/record/methods/tls_common.c:663:
+
+2025-05-17T20:09:01.080Z info: Payment initialization request received
+2025-05-17T20:09:01.260Z info: Initializing Maishapay payment
+2025-05-17T20:09:01.413Z error: Payment API error: write EPROTO 800C90F001000000:error:0A0000C6:SSL routines:tls_get_more_records:packet length too long:ssl/record/methods/tls_common.c:663:
+
+2025-05-17T20:11:16.721Z info: Payment initialization request received
+2025-05-17T20:11:16.906Z info: Initializing Maishapay payment
+2025-05-17T20:11:17.052Z error: Payment API error: write EPROTO 800C90F001000000:error:0A0000C6:SSL routines:tls_get_more_records:packet length too long:ssl/record/methods/tls_common.c:663:
+
+2025-05-17T20:12:40.092Z info: Payment initialization request received
+2025-05-17T20:12:40.257Z info: Initializing Maishapay payment
+2025-05-17T20:12:40.391Z error: Payment API error: write EPROTO 800C90F001000000:error:0A0000C6:SSL routines:tls_get_more_records:packet length too long:ssl/record/methods/tls_common.c:663:
+
+2025-05-17T20:14:46.703Z info: Payment initialization request received
+2025-05-17T20:14:46.895Z info: Initializing Maishapay payment
+2025-05-17T20:14:47.032Z error: Payment API error: write EPROTO 800C90F001000000:error:0A0000C6:SSL routines:tls_get_more_records:packet length too long:ssl/record/methods/tls_common.c:663:
+
+2025-05-17T20:15:17.841Z info: Payment initialization request received
+2025-05-17T20:15:18.016Z info: Initializing Maishapay payment
+2025-05-17T20:15:18.154Z error: Payment API error: write EPROTO 800C90F001000000:error:0A0000C6:SSL routines:tls_get_more_records:packet length too long:ssl/record/methods/tls_common.c:663:
+
+2025-05-17T20:15:55.499Z info: Payment initialization request received
+2025-05-17T20:15:55.686Z info: Initializing Maishapay payment
+2025-05-17T20:15:55.834Z error: Payment API error: write EPROTO 800C90F001000000:error:0A0000C6:SSL routines:tls_get_more_records:packet length too long:ssl/record/methods/tls_common.c:663:
+
+2025-05-17T20:16:33.168Z info: Payment initialization request received
+2025-05-17T20:16:33.335Z info: Initializing Maishapay payment
+2025-05-17T20:16:33.475Z error: Payment API error: write EPROTO 800C90F001000000:error:0A0000C6:SSL routines:tls_get_more_records:packet length too long:ssl/record/methods/tls_common.c:663:
+
+2025-05-17T20:18:24.282Z info: Payment initialization request received
+2025-05-17T20:18:24.468Z info: Initializing Maishapay payment
+2025-05-17T20:18:24.607Z error: Payment API error: write EPROTO 800C90F001000000:error:0A0000C6:SSL routines:tls_get_more_records:packet length too long:ssl/record/methods/tls_common.c:663:
+

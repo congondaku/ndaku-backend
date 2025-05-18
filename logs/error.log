@@ -1,3 +1,29 @@
 2025-05-15T21:28:11.606Z error: Add listing error:
 2025-05-15T21:28:19.909Z error: Add listing error:
 2025-05-16T19:45:05.709Z error: Error creating temporary listing
+2025-05-17T19:12:14.368Z error: Payment initialization error: Cast to ObjectId failed for value "demo123" (type string) at path "_id" for model "Listing"
+2025-05-17T19:39:44.303Z error: Payment API error: TLS protocol version "TLSv1.2" conflicts with secureProtocol "TLSv1_2_method"
+2025-05-17T19:41:48.047Z error: Payment API error: TLS protocol version "TLSv1.2" conflicts with secureProtocol "TLSv1_2_method"
+2025-05-17T19:53:24.015Z error: Payment API error: TLS protocol version "TLSv1.2" conflicts with secureProtocol "TLSv1_2_method"
+2025-05-17T19:56:30.256Z error: Payment API error: write EPROTO 800C90F001000000:error:0A0000C6:SSL routines:tls_get_more_records:packet length too long:ssl/record/methods/tls_common.c:663:
+
+2025-05-17T20:05:42.150Z error: Payment API error: write EPROTO 800C90F001000000:error:0A0000C6:SSL routines:tls_get_more_records:packet length too long:ssl/record/methods/tls_common.c:663:
+
+2025-05-17T20:08:18.027Z error: Payment API error: write EPROTO 800C90F001000000:error:0A0000C6:SSL routines:tls_get_more_records:packet length too long:ssl/record/methods/tls_common.c:663:
+
+2025-05-17T20:09:01.413Z error: Payment API error: write EPROTO 800C90F001000000:error:0A0000C6:SSL routines:tls_get_more_records:packet length too long:ssl/record/methods/tls_common.c:663:
+
+2025-05-17T20:11:17.052Z error: Payment API error: write EPROTO 800C90F001000000:error:0A0000C6:SSL routines:tls_get_more_records:packet length too long:ssl/record/methods/tls_common.c:663:
+
+2025-05-17T20:12:40.391Z error: Payment API error: write EPROTO 800C90F001000000:error:0A0000C6:SSL routines:tls_get_more_records:packet length too long:ssl/record/methods/tls_common.c:663:
+
+2025-05-17T20:14:47.032Z error: Payment API error: write EPROTO 800C90F001000000:error:0A0000C6:SSL routines:tls_get_more_records:packet length too long:ssl/record/methods/tls_common.c:663:
+
+2025-05-17T20:15:18.154Z error: Payment API error: write EPROTO 800C90F001000000:error:0A0000C6:SSL routines:tls_get_more_records:packet length too long:ssl/record/methods/tls_common.c:663:
+
+2025-05-17T20:15:55.834Z error: Payment API error: write EPROTO 800C90F001000000:error:0A0000C6:SSL routines:tls_get_more_records:packet length too long:ssl/record/methods/tls_common.c:663:
+
+2025-05-17T20:16:33.475Z error: Payment API error: write EPROTO 800C90F001000000:error:0A0000C6:SSL routines:tls_get_more_records:packet length too long:ssl/record/methods/tls_common.c:663:
+
+2025-05-17T20:18:24.607Z error: Payment API error: write EPROTO 800C90F001000000:error:0A0000C6:SSL routines:tls_get_more_records:packet length too long:ssl/record/methods/tls_common.c:663:
+
