@@ -40,11 +40,22 @@ const paymentSchema = new mongoose.Schema({
   paymentMethod: {
     type: String,
     required: true,
-    enum: ['orange', 'airtel', 'mpesa', 'card']
+    enum: ['mpesa', 'airtel', 'orange', 'card']
   },
   phoneNumber: {
     type: String,
-    required: true
+    required: function() {
+      // Only required for mobile money payments
+      return this.paymentMethod !== 'card';
+    }
+  },
+  // New fields for card payments
+  redirectUrl: {
+    type: String
+  },
+  cardType: {
+    type: String,
+    enum: ['visa', 'mastercard', 'amex', 'discover', null]
   },
   transactionId: {
     type: String
@@ -65,6 +76,10 @@ const paymentSchema = new mongoose.Schema({
   },
   webhookData: {
     type: Object
+  },
+  lastStatusCheck: {
+    type: Date,
+    default: Date.now
   }
 }, { 
   timestamps: true 
@@ -85,6 +100,7 @@ paymentSchema.virtual('isSuccessful').get(function() {
 // Add a method to update the payment status
 paymentSchema.methods.updateStatus = async function(status, webhookData = null) {
   this.status = status;
+  this.lastStatusCheck = new Date();
   
   if (webhookData) {
     this.webhookData = webhookData;

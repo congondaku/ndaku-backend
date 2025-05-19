@@ -16,17 +16,21 @@ router.get('/test', (req, res) => {
 router.get('/plans', paymentController.getSubscriptionPlans);
 router.post('/callback', paymentController.handlePaymentWebhook);
 
-// Test MaishaPay connection (public for easy testing)
+// Test connections (public for easy testing)
 router.get('/test-maishapay', paymentController.testMaishapayConnection);
+router.get('/test-card-payment', paymentController.testCardPaymentConnection); 
+router.get('/test-card-payment-v3', paymentController.testCardPaymentV3Connection); 
 
-// Protected routes (require authentication)
+// Payment initialization routes
 router.post('/initialize', authenticate, paymentController.initializePayment);
+// Optional: Direct routes to specific payment methods if needed
+router.post('/initialize-mobile', authenticate, paymentController.initializeMobileMoneyPayment);
+router.post('/initialize-card', authenticate, paymentController.initializeCardPayment);
+router.post('/initialize-card-v3', authenticate, paymentController.initializeCardPaymentV3); // Added V3 endpoint
+
+// Payment status routes
 router.get('/status/:transactionId', authenticate, paymentController.checkPaymentStatus);
 router.get('/history', authenticate, paymentController.getPaymentHistory);
-
-// Emergency fix routes
-router.get('/emergency-fix/:paymentId/:listingId?', authenticate, paymentController.emergencyFixListing);
-router.get('/fix-transaction-78452', authenticate, paymentController.fixSpecificTransaction);
 
 // Environment info route
 router.get('/test-env', (req, res) => {
@@ -37,7 +41,9 @@ router.get('/test-env', (req, res) => {
   });
 });
 
-// Development routes - make available in all environments for emergency fixes
+// Maintenance and debugging routes
 router.get('/dev-activate/:listingId', authenticate, paymentController.devActivateListing);
+router.get('/emergency-fix/:paymentId/:listingId?', authenticate, paymentController.emergencyFixListing);
+router.get('/fix-transaction-78452', authenticate, paymentController.fixSpecificTransaction);
 
 module.exports = router;

@@ -115,3 +115,90 @@
 2025-05-18T23:32:22.194Z info: Updating listing after payment:
 2025-05-18T23:32:22.254Z info: Listing activated after payment:
 2025-05-18T23:32:22.255Z info: Listing updated to success after payment initialization
+2025-05-18T23:53:03.851Z info: Initializing payment with MaishaPay:
+2025-05-18T23:53:05.810Z info: MaishaPay response:
+2025-05-18T23:53:05.810Z info: Determining payment status from:
+2025-05-18T23:53:05.810Z info: Determined payment status:
+2025-05-18T23:53:05.942Z info: Updating listing after payment:
+2025-05-18T23:53:06.005Z info: Listing activated after payment:
+2025-05-18T23:53:06.005Z info: Listing updated to success after payment initialization
+2025-05-18T23:53:35.635Z info: Initializing payment with MaishaPay:
+2025-05-18T23:53:37.456Z info: MaishaPay response:
+2025-05-18T23:53:37.456Z info: Determining payment status from:
+2025-05-18T23:53:37.457Z info: Determined payment status:
+2025-05-18T23:53:37.566Z info: Updating listing after payment:
+2025-05-18T23:53:37.624Z info: Listing activated after payment:
+2025-05-18T23:53:37.624Z info: Listing updated to success after payment initialization
+2025-05-18T23:53:50.484Z info: Initializing payment with MaishaPay:
+2025-05-18T23:53:51.141Z info: MaishaPay response:
+2025-05-18T23:53:51.141Z info: Determining payment status from:
+2025-05-18T23:53:51.141Z info: Determined payment status:
+2025-05-18T23:53:51.250Z info: Updating listing after payment:
+2025-05-18T23:53:51.311Z info: Listing activated after payment:
+2025-05-18T23:53:51.312Z info: Listing updated to success after payment initialization
+2025-05-18T23:53:55.643Z info: Initializing payment with MaishaPay:
+2025-05-18T23:53:55.935Z error: Payment initialization error:
+2025-05-19T00:07:06.722Z info: Initializing payment with MaishaPay:
+2025-05-19T00:07:08.996Z error: Payment initialization error:
+2025-05-19T00:07:46.856Z info: Initializing payment with MaishaPay:
+2025-05-19T00:07:47.514Z error: Payment initialization error:
+2025-05-19T00:07:56.750Z info: Initializing payment with MaishaPay:
+2025-05-19T00:07:57.931Z error: Payment initialization error:
+2025-05-19T00:10:38.760Z info: Initializing payment with MaishaPay:
+2025-05-19T00:10:39.486Z info: MaishaPay response:
+2025-05-19T00:10:39.487Z info: Determining payment status from:
+2025-05-19T00:10:39.487Z info: Determined payment status:
+2025-05-19T00:10:39.614Z info: Updating listing after payment:
+2025-05-19T00:10:39.672Z info: Listing activated after payment:
+2025-05-19T00:10:39.672Z info: Listing updated to success after payment initialization
+2025-05-19T00:10:48.576Z info: Initializing payment with MaishaPay:
+2025-05-19T00:10:49.350Z info: MaishaPay response:
+2025-05-19T00:10:49.350Z info: Determining payment status from:
+2025-05-19T00:10:49.350Z info: Determined payment status:
+2025-05-19T00:10:49.461Z info: Updating listing after payment:
+2025-05-19T00:10:49.517Z info: Listing activated after payment:
+2025-05-19T00:10:49.517Z info: Listing updated to success after payment initialization
+2025-05-19T00:11:02.441Z info: Initializing payment with MaishaPay:
+2025-05-19T00:11:03.217Z info: MaishaPay response:
+2025-05-19T00:11:03.217Z info: Determining payment status from:
+2025-05-19T00:11:03.217Z info: Determined payment status:
+2025-05-19T00:11:03.328Z info: Updating listing after payment:
+2025-05-19T00:11:03.382Z info: Listing activated after payment:
+2025-05-19T00:11:03.382Z info: Listing updated to success after payment initialization
+2025-05-19T00:23:05.254Z info: Initializing mobile money payment with MaishaPay:
+2025-05-19T00:23:07.301Z info: MaishaPay response:
+2025-05-19T00:23:07.302Z info: Determining payment status from:
+2025-05-19T00:23:07.430Z info: Updating listing after payment:
+2025-05-19T00:23:07.495Z info: Listing activated after payment:
+2025-05-19T00:25:54.091Z info: Initializing mobile money payment with MaishaPay:
+2025-05-19T00:25:54.884Z error: Mobile money payment initialization error:
+2025-05-19T00:26:13.949Z info: Initializing mobile money payment with MaishaPay:
+2025-05-19T00:26:14.730Z info: MaishaPay response:
+2025-05-19T00:26:14.731Z info: Determining payment status from:
+2025-05-19T00:26:14.856Z info: Updating listing after payment:
+2025-05-19T00:26:14.912Z info: Listing activated after payment:
+2025-05-19T00:26:29.062Z info: Initializing mobile money payment with MaishaPay:
+2025-05-19T00:26:29.777Z info: MaishaPay response:
+2025-05-19T00:26:29.778Z info: Determining payment status from:
+2025-05-19T00:26:29.891Z info: Updating listing after payment:
+2025-05-19T00:26:29.953Z info: Listing activated after payment:
+2025-05-19T00:28:34.708Z info: Initializing card payment with MaishaPay:
+2025-05-19T00:28:35.452Z error: Card payment initialization error:
+2025-05-19T00:48:04.298Z error: Card payment test error:
+2025-05-19T00:50:10.167Z error: Card payment test error:
+2025-05-19T00:51:02.188Z info: Initializing mobile money payment with MaishaPay:
+2025-05-19T00:51:04.387Z info: MaishaPay response:
+2025-05-19T00:51:04.387Z info: Determining payment status from:
+2025-05-19T00:51:04.519Z info: Updating listing after payment:
+2025-05-19T00:51:04.574Z info: Listing activated after payment:
+2025-05-19T00:51:45.366Z info: Initializing card payment with MaishaPay:
+2025-05-19T00:51:47.082Z error: Card payment initialization error:
+2025-05-19T00:52:48.275Z info: Initializing card payment with MaishaPay:
+2025-05-19T00:52:50.161Z error: Card payment initialization error:
+2025-05-19T00:57:42.083Z info: Initializing card payment with MaishaPay:
+2025-05-19T00:57:43.904Z error: Card payment initialization error:
+2025-05-19T00:57:48.386Z info: Initializing mobile money payment with MaishaPay:
+2025-05-19T00:57:49.074Z info: MaishaPay response:
+2025-05-19T00:57:49.075Z info: Determining payment status from:
+2025-05-19T00:57:49.189Z info: Updating listing after payment:
+2025-05-19T00:57:49.246Z info: Listing activated after payment:

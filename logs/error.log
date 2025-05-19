@@ -30,3 +30,14 @@
 2025-05-18T21:05:47.366Z error: Payment gateway status check error:
 2025-05-18T21:24:57.954Z error: Payment gateway status check error:
 2025-05-18T23:20:32.135Z error: Payment gateway status check error:
+2025-05-18T23:53:55.935Z error: Payment initialization error:
+2025-05-19T00:07:08.996Z error: Payment initialization error:
+2025-05-19T00:07:47.514Z error: Payment initialization error:
+2025-05-19T00:07:57.931Z error: Payment initialization error:
+2025-05-19T00:25:54.884Z error: Mobile money payment initialization error:
+2025-05-19T00:28:35.452Z error: Card payment initialization error:
+2025-05-19T00:48:04.298Z error: Card payment test error:
+2025-05-19T00:50:10.167Z error: Card payment test error:
+2025-05-19T00:51:47.082Z error: Card payment initialization error:
+2025-05-19T00:52:50.161Z error: Card payment initialization error:
+2025-05-19T00:57:43.904Z error: Card payment initialization error:

@@ -10,8 +10,10 @@ const CONFIG = {
   PUBLIC_KEY: process.env.MAISHAPAY_PUBLIC_KEY,
   SECRET_KEY: process.env.MAISHAPAY_SECRET_KEY,
   MAISHAPAY_API_URL: 'https://marchand.maishapay.online/api/payment/rest/vers1.0/merchant',
+  MAISHAPAY_CARD_API_URL: 'https://marchand.maishapay.online/api/collect/v2/store/card',
   BASE_URL: process.env.API_BASE_URL || 'http://localhost:5002',
   CALLBACK_URL: process.env.API_BASE_URL ? `${process.env.API_BASE_URL}/api/payments/callback` : `${process.env.API_BASE_URL}/api/payments/callback`,
+  REDIRECT_URL: process.env.API_BASE_URL ? `${process.env.API_BASE_URL}/payment-complete` : `http://localhost:3000/payment-complete`,
   GATEWAY_MODE: process.env.NODE_ENV === 'production' ? '1' : '0',
   USD_TO_CDF_RATE: 2902.50,
   SUBSCRIPTION_PLANS: {
@@ -74,11 +76,11 @@ function getPaymentStatus(status, statusCode, statusDescription) {
     return 'pending';
   } catch (error) {
     // If any error occurs during status determination, log it and default to pending
-    logger.error('Error determining payment status:', { 
-      error: error.message, 
-      status, 
-      statusCode, 
-      statusDescription 
+    logger.error('Error determining payment status:', {
+      error: error.message,
+      status,
+      statusCode,
+      statusDescription
     });
     return 'pending';
   }
@@ -128,9 +130,40 @@ function mapMaishapayStatus(status) {
 }
 
 /**
- * Initialize a mobile money payment
+ * Initialize a payment (mobile money or card)
  */
 const initializePayment = async (req, res) => {
+  try {
+    const { paymentMethod, useV3 } = req.body;
+
+    // Route to the correct payment handler based on method
+    if (paymentMethod === 'card') {
+      if (useV3) {
+        return await initializeCardPaymentV3(req, res);
+      }
+      return await initializeCardPayment(req, res);
+    } else {
+      // Original mobile money payment flow
+      return await initializeMobileMoneyPayment(req, res);
+    }
+  } catch (error) {
+    logger.error('Payment initialization error:', {
+      error: error.message,
+      response: error.response?.data,
+      stack: error.stack
+    });
+
+    return res.status(500).json({
+      success: false,
+      error: error.response?.data || error.message
+    });
+  }
+};
+
+/**
+ * Initialize a mobile money payment
+ */
+const initializeMobileMoneyPayment = async (req, res) => {
   try {
     const { planId, paymentMethod, phoneNumber, listingId } = req.body;
     const user = req.user;
@@ -150,11 +183,11 @@ const initializePayment = async (req, res) => {
 
     // Calculate amount and prepare data
     const amountCDF = convertUSDtoCDF(plan.priceUSD);
-    const transactionReference = generateTransactionReference();
+    const transactionReference = `NDAKU-${Date.now().toString().substring(6)}`;
     const externalId = generateExternalId();
     const formattedPhone = formatPhone(phoneNumber);
 
-    // Create the exact payload that works with MaishaPay
+    // Mobile money payment payload
     const maishapayPayload = {
       transactionReference,
       gatewayMode: CONFIG.GATEWAY_MODE,
@@ -168,7 +201,7 @@ const initializePayment = async (req, res) => {
       callbackUrl: CONFIG.CALLBACK_URL
     };
 
-    logger.info('Initializing payment with MaishaPay:', {
+    logger.info('Initializing mobile money payment with MaishaPay:', {
       transactionReference,
       amount: amountCDF,
       provider: paymentMethod.toUpperCase(),
@@ -188,19 +221,13 @@ const initializePayment = async (req, res) => {
 
     logger.info('MaishaPay response:', response.data);
 
-    // Determine the payment status from the response
+    // Determine payment status
     const paymentStatus = getPaymentStatus(
       response.data.status,
       response.data.data?.statusCode,
       response.data.data?.statusDescription
     );
-
-    logger.info('Determined payment status:', {
-      paymentStatus,
-      responseStatus: response.data.status,
-      statusCode: response.data.data?.statusCode,
-      statusDescription: response.data.data?.statusDescription
-    });
+    const transactionId = response.data.data?.transactionId || '';
 
     // Create payment record
     const payment = new Payment({
@@ -214,10 +241,11 @@ const initializePayment = async (req, res) => {
       currency: 'CDF',
       paymentMethod,
       phoneNumber: formattedPhone,
-      transactionId: response.data.data?.transactionId || '',
+      transactionId,
       externalId,
       status: paymentStatus,
-      responseData: response.data
+      responseData: response.data,
+      lastStatusCheck: new Date()
     });
     await payment.save();
 
@@ -225,29 +253,188 @@ const initializePayment = async (req, res) => {
     if (paymentStatus === 'success') {
       // If payment is immediately successful, update listing accordingly
       await updateListingAfterPayment(payment);
-      logger.info('Listing updated to success after payment initialization');
     } else {
       // If payment is pending or failed, update listing to reflect that status
       await Listing.findByIdAndUpdate(listingId, {
         paymentStatus: paymentStatus,
         status: 'pending_payment'
       });
-      logger.info('Listing updated to pending after payment initialization');
     }
 
     // Return response to frontend
     return res.json({
       success: true,
       data: response.data,
-      paymentStatus: paymentStatus
+      paymentStatus,
+      paymentId: payment._id,
+      transactionId
     });
   } catch (error) {
-    logger.error('Payment initialization error:', {
+    logger.error('Mobile money payment initialization error:', {
       error: error.message,
       response: error.response?.data,
       stack: error.stack
     });
 
+    return res.status(500).json({
+      success: false,
+      error: error.response?.data || error.message
+    });
+  }
+};
+
+/**
+ * Initialize a card payment
+ */
+const initializeCardPayment = async (req, res) => {
+  try {
+    const { planId, listingId, customerName, customerEmail, customerPhone } = req.body;
+    const user = req.user;
+
+    // Validation
+    if (!planId || !listingId) {
+      return res.status(400).json({ error: 'Missing required fields: planId and listingId are required' });
+    }
+
+    // Get plan details
+    const plan = CONFIG.SUBSCRIPTION_PLANS[planId];
+    if (!plan) return res.status(400).json({ error: 'Invalid plan ID' });
+
+    // Get listing
+    const listing = await Listing.findById(listingId);
+    if (!listing) return res.status(404).json({ error: 'Listing not found' });
+
+    // Calculate amount and prepare data
+    const amountCDF = convertUSDtoCDF(plan.priceUSD);
+    const transactionReference = `NDAKU-${Date.now().toString().substring(6)}`;
+    const externalId = generateExternalId();
+
+    // Get customer info - use listing info if not provided
+    const customerFullName = customerName || `${listing.listerFirstName} ${listing.listerLastName}`;
+    const customerEmailAddress = customerEmail || listing.listerEmailAddress;
+    
+    // Format phone number specifically for MaishaPay's requirements
+    let customerPhoneNumber = customerPhone || listing.listerPhoneNumber || '';
+
+    // First, clean the number by removing non-digits
+    customerPhoneNumber = customerPhoneNumber.replace(/\D/g, '');
+
+    // If it's a 10-digit number without country code (like 9995292930)
+    if (customerPhoneNumber.length === 10 || customerPhoneNumber.length === 9) {
+      // Add DRC country code
+      customerPhoneNumber = '243' + customerPhoneNumber.slice(-9);
+    }
+    // If it still doesn't have country code
+    else if (!customerPhoneNumber.startsWith('243')) {
+      customerPhoneNumber = '243' + customerPhoneNumber.slice(-9);
+    }
+
+    // Format as +XXXXXXXXXX (international format)
+    if (!customerPhoneNumber.startsWith('+')) {
+      customerPhoneNumber = '+' + customerPhoneNumber;
+    }
+
+    // Log the phone formatting for debugging
+    logger.info('Phone formatting:', { 
+      original: customerPhone || listing.listerPhoneNumber || '', 
+      formatted: customerPhoneNumber 
+    });
+
+    // Card payment payload - exactly matching MaishaPay's expected structure
+    const maishapayPayload = {
+      "transactionReference": transactionReference,
+      "gatewayMode": CONFIG.GATEWAY_MODE,
+      "publicApiKey": CONFIG.PUBLIC_KEY,
+      "secretApiKey": CONFIG.SECRET_KEY,
+      "order": {
+        "amount": amountCDF.toString(),
+        "currency": "CDF",
+        "customerFullName": customerFullName,
+        "customerPhoneNumber": customerPhoneNumber,
+        "customerEmailAdress": customerEmailAddress // Note the typo is in their API
+      },
+      "paymentChannel": {
+        "channel": "CARD",
+        "provider": "VISA", // Default to VISA
+        "callbackUrl": CONFIG.CALLBACK_URL
+      }
+    };
+    
+    logger.info('Initializing card payment with MaishaPay:', {
+      apiUrl: CONFIG.MAISHAPAY_CARD_API_URL,
+      transactionReference,
+      amount: amountCDF,
+      phoneNumber: customerPhoneNumber, // Log the phone number for debugging
+      callbackUrl: CONFIG.CALLBACK_URL
+    });
+
+    // Call MaishaPay Card API
+    const response = await axios.post(
+      CONFIG.MAISHAPAY_CARD_API_URL,
+      maishapayPayload,
+      {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+
+    logger.info('MaishaPay card payment response:', response.data);
+
+    // Card API response handling
+    const redirectUrl = response.data.paymentPage || '';
+    const paymentStatus = 'pending'; // Card payments typically start as pending
+    const transactionId = response.data.transactionId || response.data.originatingTransactionId || transactionReference;
+    
+    logger.info('Card payment initialized:', {
+      redirectUrl,
+      transactionId,
+      paymentStatus
+    });
+
+    // Create payment record
+    const payment = new Payment({
+      userId: user._id,
+      listingId,
+      planId,
+      duration: plan.duration,
+      amountUSD: plan.priceUSD,
+      amountCDF,
+      amount: amountCDF,
+      currency: 'CDF',
+      paymentMethod: 'card',
+      phoneNumber: customerPhoneNumber, // Include phone even for card payments (for records)
+      transactionId,
+      externalId,
+      status: paymentStatus,
+      responseData: response.data,
+      redirectUrl,
+      lastStatusCheck: new Date()
+    });
+    await payment.save();
+
+    // Update listing to pending_payment
+    await Listing.findByIdAndUpdate(listingId, {
+      paymentStatus: paymentStatus,
+      status: 'pending_payment'
+    });
+
+    // Return response to frontend
+    return res.json({
+      success: true,
+      data: response.data,
+      paymentStatus,
+      redirectUrl,
+      paymentId: payment._id,
+      transactionId
+    });
+  } catch (error) {
+    logger.error('Card payment initialization error:', {
+      error: error.message,
+      response: error.response?.data,
+      stack: error.stack
+    });
+    
     return res.status(500).json({
       success: false,
       error: error.response?.data || error.message
@@ -295,41 +482,68 @@ const checkPaymentStatus = async (req, res) => {
       });
     }
 
+    // Check if this is a card or mobile money payment
+    const isCardPayment = payment.paymentMethod === 'card';
+
     // In production, check with MaishaPay
     try {
-      const response = await axios.get(
-        `${CONFIG.MAISHAPAY_API_URL}/transaction/status/${payment.transactionId}`,
-        {
-          headers: {
-            'Authorization': `Bearer ${CONFIG.SECRET_KEY}`,
-            'Content-Type': 'application/json'
-          },
-          timeout: 10000
-        }
-      );
+      let response;
+
+      if (isCardPayment) {
+        // Card payment status check
+        response = await axios.get(
+          `${CONFIG.MAISHAPAY_CARD_API_URL}/status/${payment.transactionId}`,
+          {
+            headers: {
+              'Authorization': `Bearer ${CONFIG.SECRET_KEY}`,
+              'Content-Type': 'application/json'
+            },
+            timeout: 10000
+          }
+        );
+      } else {
+        // Mobile money status check
+        response = await axios.get(
+          `${CONFIG.MAISHAPAY_API_URL}/transaction/status/${payment.transactionId}`,
+          {
+            headers: {
+              'Authorization': `Bearer ${CONFIG.SECRET_KEY}`,
+              'Content-Type': 'application/json'
+            },
+            timeout: 10000
+          }
+        );
+      }
 
       logger.info('MaishaPay status check response:', response.data);
 
       // Update payment status
-      if (response.data.data) {
-        const oldStatus = payment.status;
-        const newStatus = mapMaishapayStatus(response.data.data.status);
+      const oldStatus = payment.status;
+      let newStatus;
 
-        logger.info('Status update:', {
-          oldStatus,
-          newStatus,
-          maishapayStatus: response.data.data.status
-        });
+      if (isCardPayment) {
+        // Card payments have a different response format
+        newStatus = mapMaishapayStatus(response.data.status || response.data.statusCode);
+      } else {
+        // Mobile money uses the standard format
+        newStatus = response.data.data ? mapMaishapayStatus(response.data.data.status) : oldStatus;
+      }
 
-        payment.status = newStatus;
-        payment.responseData = { ...payment.responseData, statusCheck: response.data };
-        await payment.save();
+      logger.info('Status update:', {
+        oldStatus,
+        newStatus,
+        paymentMethod: payment.paymentMethod
+      });
 
-        // Activate listing if payment successful
-        if (oldStatus !== 'success' && newStatus === 'success') {
-          await updateListingAfterPayment(payment);
-          logger.info('Listing activated after status check success');
-        }
+      payment.status = newStatus;
+      payment.responseData = { ...payment.responseData, statusCheck: response.data };
+      payment.lastStatusCheck = new Date();
+      await payment.save();
+
+      // Activate listing if payment successful
+      if (oldStatus !== 'success' && newStatus === 'success') {
+        await updateListingAfterPayment(payment);
+        logger.info('Listing activated after status check success');
       }
 
       return res.json({
@@ -383,6 +597,145 @@ const checkPaymentStatus = async (req, res) => {
 };
 
 /**
+ * Initialize a card payment using V3 API
+ */
+const initializeCardPaymentV3 = async (req, res) => {
+  try {
+    const { planId, listingId, customerName, customerEmail, customerAddress, customerCity } = req.body;
+    const user = req.user;
+
+    // Validation
+    if (!planId || !listingId) {
+      return res.status(400).json({ error: 'Missing required fields: planId and listingId are required' });
+    }
+
+    // Get plan details
+    const plan = CONFIG.SUBSCRIPTION_PLANS[planId];
+    if (!plan) return res.status(400).json({ error: 'Invalid plan ID' });
+
+    // Get listing
+    const listing = await Listing.findById(listingId);
+    if (!listing) return res.status(404).json({ error: 'Listing not found' });
+
+    // Calculate amount and prepare data
+    const amountCDF = convertUSDtoCDF(plan.priceUSD);
+    const transactionReference = `NDAKU-${Date.now().toString().substring(6)}`;
+    const externalId = generateExternalId();
+
+    // Get customer info - use listing info if not provided
+    const nameParts = (customerName || `${listing.listerFirstName} ${listing.listerLastName}`).split(' ');
+    const firstName = nameParts[0] || 'Customer';
+    const lastName = nameParts.length > 1 ? nameParts.slice(1).join(' ') : 'User';
+    const customerEmailAddress = customerEmail || listing.listerEmailAddress;
+    const customerPhoneNumber = listing.listerPhoneNumber;
+    const address = customerAddress || listing.address || 'Not provided';
+    const city = customerCity || listing.ville || 'Kinshasa';
+
+    // Card payment payload - using V3 format
+    const maishapayPayload = {
+      "transactionReference": transactionReference,
+      "gatewayMode": CONFIG.GATEWAY_MODE,
+      "publicApiKey": CONFIG.PUBLIC_KEY,
+      "secretApiKey": CONFIG.SECRET_KEY,
+      "order": {
+        "amount": amountCDF.toString(),
+        "currency": "CDF",
+        "customerFirstname": firstName,
+        "customerLastname": lastName,
+        "customerAddress": address,
+        "customerCity": city,
+        "customerPhoneNumber": customerPhoneNumber,
+        "customerEmailAdress": customerEmailAddress // Note the typo is in their API
+      },
+      "paymentChannel": {
+        "channel": "CARD",
+        "provider": "VISA", // Default to VISA
+        "callbackUrl": CONFIG.CALLBACK_URL
+      }
+    };
+
+    logger.info('Initializing card payment with MaishaPay V3:', {
+      apiUrl: CONFIG.MAISHAPAY_CARD_API_URL_V3,
+      transactionReference,
+      amount: amountCDF,
+      callbackUrl: CONFIG.CALLBACK_URL
+    });
+
+    // Call MaishaPay Card API V3
+    const response = await axios.post(
+      CONFIG.MAISHAPAY_CARD_API_URL_V3, // Using config variable instead of hardcoded URL
+      maishapayPayload,
+      {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+
+    logger.info('MaishaPay card payment V3 response:', response.data);
+
+    // Card API response handling
+    const redirectUrl = response.data.paymentPage || '';
+    const paymentStatus = 'pending'; // Card payments typically start as pending
+    const transactionId = response.data.transactionId || response.data.originatingTransactionId || transactionReference;
+
+    logger.info('Card payment initialized (V3):', {
+      redirectUrl,
+      transactionId,
+      paymentStatus
+    });
+
+    // Create payment record
+    const payment = new Payment({
+      userId: user._id,
+      listingId,
+      planId,
+      duration: plan.duration,
+      amountUSD: plan.priceUSD,
+      amountCDF,
+      amount: amountCDF,
+      currency: 'CDF',
+      paymentMethod: 'card',
+      phoneNumber: customerPhoneNumber,
+      transactionId,
+      externalId,
+      status: paymentStatus,
+      responseData: response.data,
+      redirectUrl,
+      lastStatusCheck: new Date()
+    });
+    await payment.save();
+
+    // Update listing to pending_payment
+    await Listing.findByIdAndUpdate(listingId, {
+      paymentStatus: paymentStatus,
+      status: 'pending_payment'
+    });
+
+    // Return response to frontend
+    return res.json({
+      success: true,
+      data: response.data,
+      paymentStatus,
+      redirectUrl,
+      paymentId: payment._id,
+      transactionId
+    });
+  } catch (error) {
+    logger.error('Card payment V3 initialization error:', {
+      error: error.message,
+      response: error.response?.data,
+      stack: error.stack
+    });
+
+    return res.status(500).json({
+      success: false,
+      error: error.response?.data || error.message
+    });
+  }
+};
+
+/**
  * Handle webhook from MaishaPay
  */
 const handlePaymentWebhook = async (req, res) => {
@@ -399,10 +752,10 @@ const handlePaymentWebhook = async (req, res) => {
     const statusDescription = req.body.statusDescription || req.body.data?.statusDescription;
 
     // Enhanced logging of received data
-    logger.info('Webhook data extracted:', { 
-      transactionId, 
-      status, 
-      statusCode, 
+    logger.info('Webhook data extracted:', {
+      transactionId,
+      status,
+      statusCode,
       statusDescription,
       rawBody: JSON.stringify(req.body).substring(0, 200) + '...' // Log truncated body for debugging
     });
@@ -426,10 +779,10 @@ const handlePaymentWebhook = async (req, res) => {
       return; // Already sent 200 OK response
     }
 
-    logger.info('Found payment for webhook:', { 
-      paymentId: payment._id, 
+    logger.info('Found payment for webhook:', {
+      paymentId: payment._id,
       listingId: payment.listingId,
-      currentStatus: payment.status 
+      currentStatus: payment.status
     });
 
     // Process asynchronously
@@ -437,21 +790,21 @@ const handlePaymentWebhook = async (req, res) => {
       // Update payment status
       const oldStatus = payment.status;
       const newStatus = getPaymentStatus(status, statusCode, statusDescription);
-      
-      logger.info('Webhook status update:', { 
-        oldStatus, 
-        newStatus, 
+
+      logger.info('Webhook status update:', {
+        oldStatus,
+        newStatus,
         webhookStatus: status,
         statusCode,
-        statusDescription 
+        statusDescription
       });
-      
+
       payment.status = newStatus;
       payment.webhookData = req.body;
-      
+
       // Add timestamp of when this webhook was processed
       payment.lastWebhookUpdate = new Date();
-      
+
       await payment.save();
       logger.info('Payment status updated via webhook', { newStatus, paymentId: payment._id });
 
@@ -460,23 +813,23 @@ const handlePaymentWebhook = async (req, res) => {
         try {
           // Find the listing regardless of oldStatus
           const listing = await Listing.findById(payment.listingId);
-          
+
           if (!listing) {
-            logger.error('Listing not found for successful payment', { 
-              listingId: payment.listingId, 
-              paymentId: payment._id 
+            logger.error('Listing not found for successful payment', {
+              listingId: payment.listingId,
+              paymentId: payment._id
             });
             return;
           }
-          
+
           // Only update if the listing isn't already active
           if (listing.status !== 'available' || listing.paymentStatus !== 'paid' || !listing.activeSubscription) {
-            logger.info('Updating listing from webhook', { 
+            logger.info('Updating listing from webhook', {
               listingId: listing._id,
-              currentStatus: listing.status, 
-              currentPaymentStatus: listing.paymentStatus 
+              currentStatus: listing.status,
+              currentPaymentStatus: listing.paymentStatus
             });
-            
+
             await updateListingAfterPayment(payment);
             logger.info('Listing activated after webhook success notification', {
               listingId: listing._id,
@@ -484,15 +837,15 @@ const handlePaymentWebhook = async (req, res) => {
               newPaymentStatus: 'paid'
             });
           } else {
-            logger.info('Listing already active, no update needed', { 
+            logger.info('Listing already active, no update needed', {
               listingId: payment.listingId,
               status: listing.status,
               paymentStatus: listing.paymentStatus
             });
           }
         } catch (updateError) {
-          logger.error('Error updating listing from webhook:', { 
-            error: updateError.message, 
+          logger.error('Error updating listing from webhook:', {
+            error: updateError.message,
             stack: updateError.stack,
             listingId: payment.listingId,
             paymentId: payment._id
@@ -503,18 +856,18 @@ const handlePaymentWebhook = async (req, res) => {
         try {
           await Listing.findByIdAndUpdate(
             payment.listingId,
-            { 
-              $set: { 
+            {
+              $set: {
                 paymentStatus: 'failed',
                 // Don't change listing status - keep as pending_payment
-              } 
+              }
             }
           );
-          logger.info('Listing updated to reflect failed payment', { 
-            listingId: payment.listingId 
+          logger.info('Listing updated to reflect failed payment', {
+            listingId: payment.listingId
           });
         } catch (updateError) {
-          logger.error('Error updating listing for failed payment:', { 
+          logger.error('Error updating listing for failed payment:', {
             error: updateError.message,
             listingId: payment.listingId
           });
@@ -527,7 +880,7 @@ const handlePaymentWebhook = async (req, res) => {
         listingId: payment.listingId
       });
     } catch (err) {
-      logger.error('Error processing webhook:', { 
+      logger.error('Error processing webhook:', {
         error: err.message,
         stack: err.stack,
         transactionId,
@@ -535,7 +888,7 @@ const handlePaymentWebhook = async (req, res) => {
       });
     }
   } catch (error) {
-    logger.error('Webhook handler error:', { 
+    logger.error('Webhook handler error:', {
       error: error.message,
       stack: error.stack,
       body: typeof req.body === 'object' ? JSON.stringify(req.body).substring(0, 200) : 'Invalid body'
@@ -573,7 +926,7 @@ const updateListingAfterPayment = async (payment) => {
     listing.isDeleted = false;
     listing.expiryDate = expiryDate;
     listing.paymentStatus = 'paid';
-    listing.paymentId = payment.transactionId || payment._id.toString(); 
+    listing.paymentId = payment.transactionId || payment._id.toString();
     listing.subscriptionPlan = payment.planId;
     listing.subscriptionStartDate = currentDate;
     listing.activeSubscription = true;
@@ -710,8 +1063,8 @@ const devActivateListing = async (req, res) => {
 };
 
 /**
- * Emergency fix for specific payment/listing
- */
+* Emergency fix for specific payment/listing
+*/
 const emergencyFixListing = async (req, res) => {
   try {
     const { paymentId, listingId } = req.params;
@@ -794,8 +1147,8 @@ const emergencyFixListing = async (req, res) => {
 };
 
 /**
- * Fix specific transaction ID
- */
+* Fix specific transaction ID
+*/
 const fixSpecificTransaction = async (req, res) => {
   try {
     // Hard-coded fix for transaction 78452
@@ -828,8 +1181,8 @@ const fixSpecificTransaction = async (req, res) => {
 };
 
 /**
- * Test MaishaPay connection
- */
+* Test MaishaPay connection
+*/
 const testMaishapayConnection = async (req, res) => {
   try {
     const testPayload = {
@@ -873,15 +1226,133 @@ const testMaishapayConnection = async (req, res) => {
   }
 };
 
+/**
+ * Test card payment connection
+ */
+const testCardPaymentConnection = async (req, res) => {
+  try {
+    // This payload structure must exactly match what MaishaPay expects
+    const testPayload = {
+      "transactionReference": `TEST-CARD-${Date.now()}`,
+      "gatewayMode": CONFIG.GATEWAY_MODE,
+      "publicApiKey": CONFIG.PUBLIC_KEY,
+      "secretApiKey": CONFIG.SECRET_KEY,
+      "order": {
+        "amount": "100",
+        "currency": "CDF",
+        "customerFullName": "Test User",
+        "customerPhoneNumber": "+243810000000",
+        "customerEmailAdress": "test@example.com" // Note the typo is in their API
+      },
+      "paymentChannel": {
+        "channel": "CARD",
+        "provider": "VISA",
+        "callbackUrl": CONFIG.CALLBACK_URL
+      }
+    };
+
+    const response = await axios.post(
+      CONFIG.MAISHAPAY_CARD_API_URL,
+      testPayload,
+      {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+
+    return res.json({
+      success: true,
+      cardPaymentStatus: 'Connected',
+      response: response.data,
+      redirectUrl: response.data.paymentPage || response.data.redirectUrl
+    });
+  } catch (error) {
+    logger.error('Card payment test error:', {
+      error: error.message,
+      response: error.response?.data
+    });
+
+    return res.status(500).json({
+      success: false,
+      error: error.message,
+      details: error.response?.data || 'No additional details'
+    });
+  }
+};
+
+/**
+ * Test card payment v3 connection
+ */
+const testCardPaymentV3Connection = async (req, res) => {
+  try {
+    const testPayload = {
+      "transactionReference": `TEST-CARD-V3-${Date.now()}`,
+      "gatewayMode": CONFIG.GATEWAY_MODE,
+      "publicApiKey": CONFIG.PUBLIC_KEY,
+      "secretApiKey": CONFIG.SECRET_KEY,
+      "order": {
+        "amount": "100",
+        "currency": "CDF",
+        "customerFirstname": "Test",
+        "customerLastname": "User",
+        "customerAddress": "123 Test St",
+        "customerCity": "Kinshasa",
+        "customerPhoneNumber": "+243810000000",
+        "customerEmailAdress": "test@example.com"
+      },
+      "paymentChannel": {
+        "channel": "CARD",
+        "provider": "VISA",
+        "callbackUrl": CONFIG.CALLBACK_URL
+      }
+    };
+
+    const response = await axios.post(
+      CONFIG.MAISHAPAY_CARD_API_URL_V3,
+      testPayload,
+      {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+
+    return res.json({
+      success: true,
+      cardPaymentV3Status: 'Connected',
+      response: response.data,
+      redirectUrl: response.data.paymentPage || response.data.redirectUrl
+    });
+  } catch (error) {
+    logger.error('Card payment V3 test error:', {
+      error: error.message,
+      response: error.response?.data,
+      stack: error.stack
+    });
+
+    return res.status(500).json({
+      success: false,
+      error: error.message,
+      details: error.response?.data || 'No additional details'
+    });
+  }
+};
+
 module.exports = {
   initializePayment,
+  initializeMobileMoneyPayment,
+  initializeCardPayment,
   checkPaymentStatus,
   handlePaymentWebhook,
   getPaymentHistory,
   getSubscriptionPlans,
   devActivateListing,
+  emergencyFixListing,
+  fixSpecificTransaction,
   updateListingAfterPayment,
   testMaishapayConnection,
-  emergencyFixListing,
-  fixSpecificTransaction
+  testCardPaymentConnection,
+  testCardPaymentV3Connection,
+  initializeCardPaymentV3
 };
