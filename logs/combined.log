@@ -552,3 +552,13 @@
 2025-05-20T07:08:48.942Z info: Card payment request received:
 2025-05-20T07:08:48.987Z info: Card payment payload (sanitized):
 2025-05-20T07:08:50.761Z info: MaishaPay card payment response:
+2025-05-20T07:16:08.484Z info: Payment initialization request received:
+2025-05-20T07:16:08.485Z info: Payment initialization details:
+2025-05-20T07:16:08.485Z info: Card payment request received:
+2025-05-20T07:16:08.534Z info: Card payment payload (sanitized):
+2025-05-20T07:16:11.439Z info: MaishaPay card payment response:
+2025-05-20T07:18:44.422Z info: Payment initialization request received:
+2025-05-20T07:18:44.423Z info: Payment initialization details:
+2025-05-20T07:18:44.423Z info: Card payment request received:
+2025-05-20T07:18:44.471Z info: Card payment payload (sanitized):
+2025-05-20T07:18:46.382Z info: MaishaPay card payment response:
