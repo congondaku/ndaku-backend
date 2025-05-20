@@ -12,9 +12,9 @@ const CONFIG = {
   MAISHAPAY_API_URL: 'https://marchand.maishapay.online/api/payment/rest/vers1.0/merchant',
   MAISHAPAY_CARD_API_URL: 'https://marchand.maishapay.online/api/collect/v2/store/card',
   BASE_URL: process.env.API_BASE_URL || 'http://localhost:5002',
-  CALLBACK_URL: process.env.API_BASE_URL ? `${process.env.API_BASE_URL}/api/payments/callback` : `${process.env.API_BASE_URL}/api/payments/callback`,
-  REDIRECT_URL: process.env.API_BASE_URL ? `${process.env.API_BASE_URL}/payment-complete` : `http://localhost:3000/payment-complete`,
-  GATEWAY_MODE: process.env.NODE_ENV === 'production' ? '1' : '0',
+  CALLBACK_URL: "http://localhost:3000/", // Hardcoded for testing
+  REDIRECT_URL: "http://localhost:3000/dashboard",
+  GATEWAY_MODE: "1", // Force to "1" for live mode
   USD_TO_CDF_RATE: 2902.50,
   SUBSCRIPTION_PLANS: {
     '1_month': { duration: 1, priceUSD: 10 },
@@ -24,7 +24,6 @@ const CONFIG = {
     '12_months': { duration: 12, priceUSD: 70 }
   }
 };
-
 // Helper functions
 const generateTransactionReference = () => `NDAKU-${crypto.randomBytes(4).toString('hex').substring(0, 8)}`;
 const generateExternalId = () => `NDAKU-${Date.now()}-${crypto.randomBytes(4).toString('hex').substring(0, 8)}`;
@@ -134,7 +133,36 @@ function mapMaishapayStatus(status) {
  */
 const initializePayment = async (req, res) => {
   try {
-    const { paymentMethod, useV3 } = req.body;
+    const { paymentMethod, useV3, currency } = req.body;
+
+    // Debug log for incoming request
+    logger.info('Payment initialization request received:', {
+      method: paymentMethod,
+      useV3: !!useV3,
+      currency,
+      body: req.body
+    });
+
+    // Validate currency
+    const validCurrencies = ['USD', 'CDF'];
+    const selectedCurrency = currency || 'CDF';
+    
+    if (!validCurrencies.includes(selectedCurrency)) {
+      return res.status(400).json({ 
+        success: false,
+        error: 'Invalid currency specified. Must be USD or CDF.' 
+      });
+    }
+
+    // Log payment initialization
+    logger.info('Payment initialization details:', {
+      method: paymentMethod,
+      useV3: !!useV3,
+      currency: selectedCurrency,
+      gatewayMode: "1", // Force live mode
+      nodeEnv: process.env.NODE_ENV,
+      userId: req.user?._id
+    });
 
     // Route to the correct payment handler based on method
     if (paymentMethod === 'card') {
@@ -165,12 +193,23 @@ const initializePayment = async (req, res) => {
  */
 const initializeMobileMoneyPayment = async (req, res) => {
   try {
-    const { planId, paymentMethod, phoneNumber, listingId } = req.body;
+    const { planId, paymentMethod, phoneNumber, listingId, currency } = req.body;
     const user = req.user;
 
     // Validation
     if (!planId || !paymentMethod || !phoneNumber || !listingId) {
       return res.status(400).json({ error: 'Missing required fields' });
+    }
+
+    // Validate currency
+    const validCurrencies = ['USD', 'CDF'];
+    const selectedCurrency = currency || 'CDF';
+    
+    if (!validCurrencies.includes(selectedCurrency)) {
+      return res.status(400).json({ 
+        success: false,
+        error: 'Invalid currency specified. Must be USD or CDF.' 
+      });
     }
 
     // Get plan details
@@ -181,8 +220,15 @@ const initializeMobileMoneyPayment = async (req, res) => {
     const listing = await Listing.findById(listingId);
     if (!listing) return res.status(404).json({ error: 'Listing not found' });
 
-    // Calculate amount and prepare data
-    const amountCDF = convertUSDtoCDF(plan.priceUSD);
+    // Calculate amount based on selected currency
+    let amount = 0;
+    if (selectedCurrency === 'USD') {
+      amount = plan.priceUSD;
+    } else {
+      // For CDF, convert from USD
+      amount = convertUSDtoCDF(plan.priceUSD);
+    }
+
     const transactionReference = `NDAKU-${Date.now().toString().substring(6)}`;
     const externalId = generateExternalId();
     const formattedPhone = formatPhone(phoneNumber);
@@ -193,8 +239,8 @@ const initializeMobileMoneyPayment = async (req, res) => {
       gatewayMode: CONFIG.GATEWAY_MODE,
       publicApiKey: CONFIG.PUBLIC_KEY,
       secretApiKey: CONFIG.SECRET_KEY,
-      amount: amountCDF,
-      currency: "CDF",
+      amount: amount.toString(), // Convert to string for consistency
+      currency: selectedCurrency,
       chanel: "MOBILEMONEY",
       provider: paymentMethod.toUpperCase(),
       walletID: formattedPhone,
@@ -203,19 +249,30 @@ const initializeMobileMoneyPayment = async (req, res) => {
 
     logger.info('Initializing mobile money payment with MaishaPay:', {
       transactionReference,
-      amount: amountCDF,
+      amount,
+      currency: selectedCurrency,
       provider: paymentMethod.toUpperCase(),
-      callbackUrl: CONFIG.CALLBACK_URL
+      callbackUrl: CONFIG.CALLBACK_URL,
+      gatewayMode: CONFIG.GATEWAY_MODE,
+      publicKeyPrefix: CONFIG.PUBLIC_KEY?.substring(0, 15) + '...'
     });
 
-    // Call MaishaPay API
+    // Full payload logging for troubleshooting - BE CAREFUL WITH SENSITIVE DATA IN PRODUCTION
+    logger.info('Mobile money payment payload:', JSON.stringify({
+      ...maishapayPayload,
+      publicApiKey: '[REDACTED]',
+      secretApiKey: '[REDACTED]'
+    }, null, 2));
+
+    // Call MaishaPay API with timeout
     const response = await axios.post(
       CONFIG.MAISHAPAY_API_URL,
       maishapayPayload,
       {
         headers: {
           'Content-Type': 'application/json'
-        }
+        },
+        timeout: 60000
       }
     );
 
@@ -236,9 +293,9 @@ const initializeMobileMoneyPayment = async (req, res) => {
       planId,
       duration: plan.duration,
       amountUSD: plan.priceUSD,
-      amountCDF,
-      amount: amountCDF,
-      currency: 'CDF',
+      amountCDF: convertUSDtoCDF(plan.priceUSD), // Store both amounts for reference
+      amount: amount, // Store the actual amount charged
+      currency: selectedCurrency,
       paymentMethod,
       phoneNumber: formattedPhone,
       transactionId,
@@ -272,9 +329,31 @@ const initializeMobileMoneyPayment = async (req, res) => {
   } catch (error) {
     logger.error('Mobile money payment initialization error:', {
       error: error.message,
+      code: error.code,
+      isTimeout: error.code === 'ECONNABORTED',
       response: error.response?.data,
       stack: error.stack
     });
+
+    // Enhanced error handling for MaishaPay responses
+    if (error.response?.data?.error) {
+      return res.status(500).json({
+        success: false,
+        error: `MaishaPay error: ${error.response.data.error.title || 'Unknown error'}`,
+        description: error.response.data.error.description,
+        isTimeout: false
+      });
+    }
+
+    // Special handling for timeout errors
+    if (error.code === 'ECONNABORTED') {
+      return res.status(504).json({
+        success: false,
+        error: 'Payment gateway timeout. The payment server is taking longer than expected to respond.',
+        isTimeout: true,
+        message: 'Please try again in a few minutes or use a different payment method.'
+      });
+    }
 
     return res.status(500).json({
       success: false,
@@ -288,8 +367,13 @@ const initializeMobileMoneyPayment = async (req, res) => {
  */
 const initializeCardPayment = async (req, res) => {
   try {
-    const { planId, listingId, customerName, customerEmail, customerPhone } = req.body;
+    const { planId, listingId, customerName, customerEmail, phoneNumber, currency } = req.body;
     const user = req.user;
+
+    logger.info('Card payment request received:', { 
+      body: req.body, 
+      user: user?._id 
+    });
 
     // Validation
     if (!planId || !listingId) {
@@ -304,78 +388,63 @@ const initializeCardPayment = async (req, res) => {
     const listing = await Listing.findById(listingId);
     if (!listing) return res.status(404).json({ error: 'Listing not found' });
 
-    // Calculate amount and prepare data
-    const amountCDF = convertUSDtoCDF(plan.priceUSD);
+    // Determine amount based on currency
+    const selectedCurrency = currency || 'CDF';
+    let amount = 0;
+    
+    if (selectedCurrency === 'USD') {
+      amount = plan.priceUSD;
+    } else {
+      // For CDF, convert from USD
+      amount = convertUSDtoCDF(plan.priceUSD);
+    }
+
     const transactionReference = `NDAKU-${Date.now().toString().substring(6)}`;
     const externalId = generateExternalId();
 
-    // Get customer info - use listing info if not provided
-    const customerFullName = customerName || `${listing.listerFirstName} ${listing.listerLastName}`;
-    const customerEmailAddress = customerEmail || listing.listerEmailAddress;
-    
-    // Format phone number specifically for MaishaPay's requirements
-    let customerPhoneNumber = customerPhone || listing.listerPhoneNumber || '';
+    // Get a properly formatted phone number for MaishaPay
+    // Use the format that worked in the curl test: "+12025550198"
+    const customerPhoneNumber = phoneNumber?.startsWith('+') 
+      ? phoneNumber 
+      : `+${phoneNumber?.replace(/\D/g, '')}`;
 
-    // First, clean the number by removing non-digits
-    customerPhoneNumber = customerPhoneNumber.replace(/\D/g, '');
-
-    // If it's a 10-digit number without country code (like 9995292930)
-    if (customerPhoneNumber.length === 10 || customerPhoneNumber.length === 9) {
-      // Add DRC country code
-      customerPhoneNumber = '243' + customerPhoneNumber.slice(-9);
-    }
-    // If it still doesn't have country code
-    else if (!customerPhoneNumber.startsWith('243')) {
-      customerPhoneNumber = '243' + customerPhoneNumber.slice(-9);
-    }
-
-    // Format as +XXXXXXXXXX (international format)
-    if (!customerPhoneNumber.startsWith('+')) {
-      customerPhoneNumber = '+' + customerPhoneNumber;
-    }
-
-    // Log the phone formatting for debugging
-    logger.info('Phone formatting:', { 
-      original: customerPhone || listing.listerPhoneNumber || '', 
-      formatted: customerPhoneNumber 
-    });
-
-    // Card payment payload - exactly matching MaishaPay's expected structure
-    const maishapayPayload = {
+    // Create the payload - matching exactly what worked in curl
+    const payload = {
       "transactionReference": transactionReference,
-      "gatewayMode": CONFIG.GATEWAY_MODE,
+      "gatewayMode": "1", // Force to "1" for live mode
       "publicApiKey": CONFIG.PUBLIC_KEY,
       "secretApiKey": CONFIG.SECRET_KEY,
       "order": {
-        "amount": amountCDF.toString(),
-        "currency": "CDF",
-        "customerFullName": customerFullName,
-        "customerPhoneNumber": customerPhoneNumber,
-        "customerEmailAdress": customerEmailAddress // Note the typo is in their API
+        "amount": amount.toString(),
+        "currency": selectedCurrency,
+        "customerFullName": customerName || "Test User",
+        "customerPhoneNumber": "+12025550198", // Use exactly what worked in curl
+        "customerEmailAdress": customerEmail || "test@example.com" // Note the typo is in their API
       },
       "paymentChannel": {
         "channel": "CARD",
-        "provider": "VISA", // Default to VISA
-        "callbackUrl": CONFIG.CALLBACK_URL
+        "provider": "VISA",
+        "callbackUrl": "http://localhost:3000/"
       }
     };
     
-    logger.info('Initializing card payment with MaishaPay:', {
-      apiUrl: CONFIG.MAISHAPAY_CARD_API_URL,
-      transactionReference,
-      amount: amountCDF,
-      phoneNumber: customerPhoneNumber, // Log the phone number for debugging
-      callbackUrl: CONFIG.CALLBACK_URL
+    logger.info('Card payment payload (sanitized):', {
+      transactionReference: payload.transactionReference,
+      gatewayMode: payload.gatewayMode,
+      amount: payload.order.amount,
+      currency: payload.order.currency,
+      phoneNumber: payload.order.customerPhoneNumber
     });
 
-    // Call MaishaPay Card API
+    // Make the API call directly to the URL that worked in curl
     const response = await axios.post(
-      CONFIG.MAISHAPAY_CARD_API_URL,
-      maishapayPayload,
+      'https://marchand.maishapay.online/api/collect/v2/store/card',
+      payload,
       {
         headers: {
           'Content-Type': 'application/json'
-        }
+        },
+        timeout: 60000
       }
     );
 
@@ -383,15 +452,9 @@ const initializeCardPayment = async (req, res) => {
 
     // Card API response handling
     const redirectUrl = response.data.paymentPage || '';
-    const paymentStatus = 'pending'; // Card payments typically start as pending
+    const paymentStatus = 'pending';
     const transactionId = response.data.transactionId || response.data.originatingTransactionId || transactionReference;
     
-    logger.info('Card payment initialized:', {
-      redirectUrl,
-      transactionId,
-      paymentStatus
-    });
-
     // Create payment record
     const payment = new Payment({
       userId: user._id,
@@ -399,11 +462,11 @@ const initializeCardPayment = async (req, res) => {
       planId,
       duration: plan.duration,
       amountUSD: plan.priceUSD,
-      amountCDF,
-      amount: amountCDF,
-      currency: 'CDF',
+      amountCDF: convertUSDtoCDF(plan.priceUSD),
+      amount: amount,
+      currency: selectedCurrency,
       paymentMethod: 'card',
-      phoneNumber: customerPhoneNumber, // Include phone even for card payments (for records)
+      phoneNumber: customerPhoneNumber,
       transactionId,
       externalId,
       status: paymentStatus,
@@ -419,25 +482,38 @@ const initializeCardPayment = async (req, res) => {
       status: 'pending_payment'
     });
 
-    // Return response to frontend
+    // Return response to frontend with explicit redirect URL for debugging
     return res.json({
       success: true,
       data: response.data,
       paymentStatus,
-      redirectUrl,
+      redirectUrl: response.data.paymentPage,
       paymentId: payment._id,
       transactionId
     });
+
   } catch (error) {
     logger.error('Card payment initialization error:', {
       error: error.message,
+      code: error.code,
+      isTimeout: error.code === 'ECONNABORTED',
       response: error.response?.data,
-      stack: error.stack
+      stack: error.stack.split('\n').slice(0, 5).join('\n')
     });
     
+    // Enhanced error handling for MaishaPay responses
+    if (error.response?.data) {
+      return res.status(500).json({
+        success: false,
+        error: error.message,
+        details: error.response.data
+      });
+    }
+    
+    // Log any other error details
     return res.status(500).json({
       success: false,
-      error: error.response?.data || error.message
+      error: error.message
     });
   }
 };
@@ -601,12 +677,23 @@ const checkPaymentStatus = async (req, res) => {
  */
 const initializeCardPaymentV3 = async (req, res) => {
   try {
-    const { planId, listingId, customerName, customerEmail, customerAddress, customerCity } = req.body;
+    const { planId, listingId, customerName, customerEmail, customerAddress, customerCity, currency } = req.body;
     const user = req.user;
 
     // Validation
     if (!planId || !listingId) {
       return res.status(400).json({ error: 'Missing required fields: planId and listingId are required' });
+    }
+
+    // Validate currency
+    const validCurrencies = ['USD', 'CDF'];
+    const selectedCurrency = currency || 'CDF';
+    
+    if (!validCurrencies.includes(selectedCurrency)) {
+      return res.status(400).json({ 
+        success: false,
+        error: 'Invalid currency specified. Must be USD or CDF.' 
+      });
     }
 
     // Get plan details
@@ -617,8 +704,15 @@ const initializeCardPaymentV3 = async (req, res) => {
     const listing = await Listing.findById(listingId);
     if (!listing) return res.status(404).json({ error: 'Listing not found' });
 
-    // Calculate amount and prepare data
-    const amountCDF = convertUSDtoCDF(plan.priceUSD);
+    // Determine amount based on currency
+    let amount = 0;
+    if (selectedCurrency === 'USD') {
+      amount = plan.priceUSD;
+    } else {
+      // For CDF, convert from USD
+      amount = convertUSDtoCDF(plan.priceUSD);
+    }
+
     const transactionReference = `NDAKU-${Date.now().toString().substring(6)}`;
     const externalId = generateExternalId();
 
@@ -638,8 +732,8 @@ const initializeCardPaymentV3 = async (req, res) => {
       "publicApiKey": CONFIG.PUBLIC_KEY,
       "secretApiKey": CONFIG.SECRET_KEY,
       "order": {
-        "amount": amountCDF.toString(),
-        "currency": "CDF",
+        "amount": amount.toString(),
+        "currency": selectedCurrency,
         "customerFirstname": firstName,
         "customerLastname": lastName,
         "customerAddress": address,
@@ -657,9 +751,19 @@ const initializeCardPaymentV3 = async (req, res) => {
     logger.info('Initializing card payment with MaishaPay V3:', {
       apiUrl: CONFIG.MAISHAPAY_CARD_API_URL_V3,
       transactionReference,
-      amount: amountCDF,
-      callbackUrl: CONFIG.CALLBACK_URL
+      amount,
+      currency: selectedCurrency,
+      callbackUrl: CONFIG.CALLBACK_URL,
+      gatewayMode: CONFIG.GATEWAY_MODE,
+      publicKeyPrefix: CONFIG.PUBLIC_KEY?.substring(0, 15) + '...'
     });
+
+    // Full payload logging for troubleshooting - BE CAREFUL WITH SENSITIVE DATA IN PRODUCTION
+    logger.info('Card payment V3 payload:', JSON.stringify({
+      ...maishapayPayload,
+      publicApiKey: '[REDACTED]',
+      secretApiKey: '[REDACTED]'
+    }, null, 2));
 
     // Call MaishaPay Card API V3
     const response = await axios.post(
@@ -668,7 +772,8 @@ const initializeCardPaymentV3 = async (req, res) => {
       {
         headers: {
           'Content-Type': 'application/json'
-        }
+        },
+        timeout: 60000
       }
     );
 
@@ -692,9 +797,9 @@ const initializeCardPaymentV3 = async (req, res) => {
       planId,
       duration: plan.duration,
       amountUSD: plan.priceUSD,
-      amountCDF,
-      amount: amountCDF,
-      currency: 'CDF',
+      amountCDF: convertUSDtoCDF(plan.priceUSD), // Store both amounts for reference
+      amount: amount, // Store the actual amount charged
+      currency: selectedCurrency,
       paymentMethod: 'card',
       phoneNumber: customerPhoneNumber,
       transactionId,
@@ -724,9 +829,31 @@ const initializeCardPaymentV3 = async (req, res) => {
   } catch (error) {
     logger.error('Card payment V3 initialization error:', {
       error: error.message,
+      code: error.code,
+      isTimeout: error.code === 'ECONNABORTED',
       response: error.response?.data,
       stack: error.stack
     });
+
+    // Enhanced error handling for MaishaPay responses
+    if (error.response?.data?.error) {
+      return res.status(500).json({
+        success: false,
+        error: `MaishaPay error: ${error.response.data.error.title || 'Unknown error'}`,
+        description: error.response.data.error.description,
+        isTimeout: false
+      });
+    }
+    
+    // Special handling for timeout errors
+    if (error.code === 'ECONNABORTED') {
+      return res.status(504).json({
+        success: false,
+        error: 'Card payment gateway timeout. The payment server is taking longer than expected to respond.',
+        isTimeout: true,
+        message: 'Please try again in a few minutes.'
+      });
+    }
 
     return res.status(500).json({
       success: false,

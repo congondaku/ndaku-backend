@@ -320,3 +320,235 @@
 2025-05-20T01:30:21.131Z info: Creating temporary listing
 2025-05-20T01:30:21.134Z info: Creating temporary listing with data
 2025-05-20T01:30:21.251Z info: Temporary listing created successfully
+2025-05-20T04:47:39.520Z info: Creating temporary listing
+2025-05-20T04:47:39.523Z info: Creating temporary listing with data
+2025-05-20T04:47:39.618Z error: Error creating temporary listing
+2025-05-20T04:47:54.765Z info: Creating temporary listing
+2025-05-20T04:47:54.766Z info: Creating temporary listing with data
+2025-05-20T04:47:54.827Z error: Error creating temporary listing
+2025-05-20T04:48:37.400Z info: Creating temporary listing
+2025-05-20T04:48:37.401Z info: Creating temporary listing with data
+2025-05-20T04:48:37.469Z error: Error creating temporary listing
+2025-05-20T04:52:38.959Z info: Creating temporary listing
+2025-05-20T04:52:38.961Z info: Creating temporary listing with data
+2025-05-20T04:52:39.026Z error: Error creating temporary listing
+2025-05-20T04:52:43.105Z info: Creating temporary listing
+2025-05-20T04:52:43.107Z info: Creating temporary listing with data
+2025-05-20T04:52:43.167Z error: Error creating temporary listing
+2025-05-20T04:54:18.161Z info: Creating temporary listing
+2025-05-20T04:54:18.161Z info: Creating temporary listing with data
+2025-05-20T04:54:18.236Z info: Temporary listing created successfully
+2025-05-20T04:57:34.645Z info: Initializing mobile money payment with MaishaPay:
+2025-05-20T04:57:49.620Z info: Initializing mobile money payment with MaishaPay:
+2025-05-20T04:58:51.364Z info: MaishaPay response:
+2025-05-20T04:58:51.365Z info: Determining payment status from:
+2025-05-20T04:58:51.365Z info: Could not determine status precisely, defaulting to pending
+2025-05-20T04:59:05.219Z info: MaishaPay response:
+2025-05-20T04:59:05.219Z info: Determining payment status from:
+2025-05-20T04:59:05.220Z info: Could not determine status precisely, defaulting to pending
+2025-05-20T05:24:48.577Z info: Phone formatting:
+2025-05-20T05:24:48.580Z info: Initializing card payment with MaishaPay:
+2025-05-20T05:24:50.496Z error: Card payment initialization error:
+2025-05-20T05:24:52.611Z info: Phone formatting:
+2025-05-20T05:24:52.611Z info: Initializing card payment with MaishaPay:
+2025-05-20T05:24:52.922Z error: Card payment initialization error:
+2025-05-20T05:24:55.040Z info: Phone formatting:
+2025-05-20T05:24:55.041Z info: Initializing card payment with MaishaPay:
+2025-05-20T05:24:55.308Z error: Card payment initialization error:
+2025-05-20T05:25:46.912Z info: Initializing mobile money payment with MaishaPay:
+2025-05-20T05:25:48.600Z error: Mobile money payment initialization error:
+2025-05-20T05:25:50.714Z info: Initializing mobile money payment with MaishaPay:
+2025-05-20T05:25:51.078Z error: Mobile money payment initialization error:
+2025-05-20T05:25:53.218Z info: Initializing mobile money payment with MaishaPay:
+2025-05-20T05:25:53.585Z error: Mobile money payment initialization error:
+2025-05-20T05:30:38.339Z info: Phone formatting:
+2025-05-20T05:30:38.340Z info: Initializing card payment with MaishaPay:
+2025-05-20T05:30:40.015Z error: Card payment initialization error:
+2025-05-20T05:30:42.142Z info: Phone formatting:
+2025-05-20T05:30:42.142Z info: Initializing card payment with MaishaPay:
+2025-05-20T05:30:42.375Z error: Card payment initialization error:
+2025-05-20T05:30:44.488Z info: Phone formatting:
+2025-05-20T05:30:44.488Z info: Initializing card payment with MaishaPay:
+2025-05-20T05:30:44.759Z error: Card payment initialization error:
+2025-05-20T05:30:54.743Z info: Initializing mobile money payment with MaishaPay:
+2025-05-20T05:31:54.759Z error: Mobile money payment initialization error:
+2025-05-20T05:31:57.339Z info: Initializing mobile money payment with MaishaPay:
+2025-05-20T05:32:57.350Z error: Mobile money payment initialization error:
+2025-05-20T05:33:00.386Z info: Initializing mobile money payment with MaishaPay:
+2025-05-20T05:34:00.394Z error: Mobile money payment initialization error:
+2025-05-20T05:35:42.844Z info: Initializing mobile money payment with MaishaPay:
+2025-05-20T05:36:42.861Z error: Mobile money payment initialization error:
+2025-05-20T05:36:44.987Z info: Initializing mobile money payment with MaishaPay:
+2025-05-20T05:37:44.994Z error: Mobile money payment initialization error:
+2025-05-20T05:37:47.121Z info: Initializing mobile money payment with MaishaPay:
+2025-05-20T05:38:46.154Z info: Initializing mobile money payment with MaishaPay:
+2025-05-20T05:38:47.083Z error: Mobile money payment initialization error:
+2025-05-20T05:38:47.128Z error: Mobile money payment initialization error:
+2025-05-20T05:38:49.193Z info: Initializing mobile money payment with MaishaPay:
+2025-05-20T05:38:49.737Z error: Mobile money payment initialization error:
+2025-05-20T05:38:51.846Z info: Initializing mobile money payment with MaishaPay:
+2025-05-20T05:38:52.387Z error: Mobile money payment initialization error:
+2025-05-20T05:39:01.591Z info: Initializing mobile money payment with MaishaPay:
+2025-05-20T05:40:01.598Z error: Mobile money payment initialization error:
+2025-05-20T05:40:03.719Z info: Initializing mobile money payment with MaishaPay:
+2025-05-20T05:40:24.940Z error: Mobile money payment initialization error:
+2025-05-20T05:40:30.618Z info: Initializing mobile money payment with MaishaPay:
+2025-05-20T05:41:30.624Z error: Mobile money payment initialization error:
+2025-05-20T05:44:07.783Z info: Phone formatting:
+2025-05-20T05:44:07.783Z info: Initializing card payment with MaishaPay:
+2025-05-20T05:44:09.731Z error: Card payment initialization error:
+2025-05-20T05:44:11.861Z info: Phone formatting:
+2025-05-20T05:44:11.862Z info: Initializing card payment with MaishaPay:
+2025-05-20T05:44:12.093Z error: Card payment initialization error:
+2025-05-20T05:44:14.195Z info: Phone formatting:
+2025-05-20T05:44:14.195Z info: Initializing card payment with MaishaPay:
+2025-05-20T05:44:14.436Z error: Card payment initialization error:
+2025-05-20T05:45:57.600Z info: Initializing mobile money payment with MaishaPay:
+2025-05-20T05:46:46.768Z error: Mobile money payment initialization error:
+2025-05-20T05:52:35.101Z info: Initializing mobile money payment with MaishaPay:
+2025-05-20T05:53:11.098Z error: Mobile money payment initialization error:
+2025-05-20T05:53:13.224Z info: Initializing mobile money payment with MaishaPay:
+2025-05-20T05:54:13.229Z error: Mobile money payment initialization error:
+2025-05-20T05:54:15.346Z info: Initializing mobile money payment with MaishaPay:
+2025-05-20T05:54:34.182Z error: Mobile money payment initialization error:
+2025-05-20T05:55:00.429Z info: Initializing mobile money payment with MaishaPay:
+2025-05-20T05:55:14.081Z error: Mobile money payment initialization error:
+2025-05-20T05:55:16.193Z info: Initializing mobile money payment with MaishaPay:
+2025-05-20T05:56:16.198Z error: Mobile money payment initialization error:
+2025-05-20T05:56:18.332Z info: Initializing mobile money payment with MaishaPay:
+2025-05-20T05:57:18.338Z error: Mobile money payment initialization error:
+2025-05-20T06:07:32.060Z info: Payment initialization request:
+2025-05-20T06:07:32.110Z info: Initializing mobile money payment with MaishaPay:
+2025-05-20T06:07:32.111Z info: Mobile money payment payload:
+2025-05-20T06:07:53.477Z info: MaishaPay response:
+2025-05-20T06:07:53.479Z info: Determining payment status from:
+2025-05-20T06:07:53.623Z info: Updating listing after payment:
+2025-05-20T06:07:53.690Z info: Listing activated after payment:
+2025-05-20T06:07:59.458Z error: Payment gateway status check error:
+2025-05-20T06:14:19.908Z info: Payment initialization request:
+2025-05-20T06:14:19.967Z info: Phone formatting:
+2025-05-20T06:14:19.968Z info: Initializing card payment with MaishaPay:
+2025-05-20T06:14:19.968Z info: Card payment payload:
+2025-05-20T06:14:21.740Z error: Card payment initialization error:
+2025-05-20T06:14:23.810Z info: Payment initialization request:
+2025-05-20T06:14:23.865Z info: Phone formatting:
+2025-05-20T06:14:23.865Z info: Initializing card payment with MaishaPay:
+2025-05-20T06:14:23.865Z info: Card payment payload:
+2025-05-20T06:14:24.167Z error: Card payment initialization error:
+2025-05-20T06:14:26.236Z info: Payment initialization request:
+2025-05-20T06:14:26.299Z info: Phone formatting:
+2025-05-20T06:14:26.299Z info: Initializing card payment with MaishaPay:
+2025-05-20T06:14:26.299Z info: Card payment payload:
+2025-05-20T06:14:26.534Z error: Card payment initialization error:
+2025-05-20T06:38:36.238Z info: Payment initialization request:
+2025-05-20T06:38:36.288Z info: Phone formatting:
+2025-05-20T06:38:36.289Z info: Initializing card payment with MaishaPay:
+2025-05-20T06:38:36.289Z info: Card payment payload:
+2025-05-20T06:38:38.179Z error: Card payment initialization error:
+2025-05-20T06:38:40.249Z info: Payment initialization request:
+2025-05-20T06:38:40.298Z info: Phone formatting:
+2025-05-20T06:38:40.299Z info: Initializing card payment with MaishaPay:
+2025-05-20T06:38:40.299Z info: Card payment payload:
+2025-05-20T06:38:40.557Z error: Card payment initialization error:
+2025-05-20T06:38:42.622Z info: Payment initialization request:
+2025-05-20T06:38:42.677Z info: Phone formatting:
+2025-05-20T06:38:42.678Z info: Initializing card payment with MaishaPay:
+2025-05-20T06:38:42.678Z info: Card payment payload:
+2025-05-20T06:38:42.948Z error: Card payment initialization error:
+2025-05-20T06:39:11.214Z info: Payment initialization request received:
+2025-05-20T06:39:11.214Z info: Payment initialization details:
+2025-05-20T06:39:11.215Z info: Card payment request received:
+2025-05-20T06:39:11.265Z info: Phone formatting:
+2025-05-20T06:39:11.266Z info: Initializing card payment with MaishaPay:
+2025-05-20T06:39:11.266Z info: Card payment payload:
+2025-05-20T06:39:11.845Z error: Card payment initialization error:
+2025-05-20T06:39:13.913Z info: Payment initialization request received:
+2025-05-20T06:39:13.914Z info: Payment initialization details:
+2025-05-20T06:39:13.914Z info: Card payment request received:
+2025-05-20T06:39:13.960Z info: Phone formatting:
+2025-05-20T06:39:13.961Z info: Initializing card payment with MaishaPay:
+2025-05-20T06:39:13.961Z info: Card payment payload:
+2025-05-20T06:39:14.206Z error: Card payment initialization error:
+2025-05-20T06:39:16.279Z info: Payment initialization request received:
+2025-05-20T06:39:16.279Z info: Payment initialization details:
+2025-05-20T06:39:16.279Z info: Card payment request received:
+2025-05-20T06:39:16.330Z info: Phone formatting:
+2025-05-20T06:39:16.330Z info: Initializing card payment with MaishaPay:
+2025-05-20T06:39:16.331Z info: Card payment payload:
+2025-05-20T06:39:16.596Z error: Card payment initialization error:
+2025-05-20T06:47:04.149Z info: Payment initialization request received:
+2025-05-20T06:47:04.151Z info: Payment initialization details:
+2025-05-20T06:47:04.152Z info: Card payment request received:
+2025-05-20T06:47:04.205Z info: Phone formatting:
+2025-05-20T06:47:04.206Z info: Initializing card payment with MaishaPay:
+2025-05-20T06:47:04.206Z info: Card payment payload:
+2025-05-20T06:47:06.090Z error: Card payment initialization error:
+2025-05-20T06:47:08.184Z info: Payment initialization request received:
+2025-05-20T06:47:08.185Z info: Payment initialization details:
+2025-05-20T06:47:08.185Z info: Card payment request received:
+2025-05-20T06:47:08.245Z info: Phone formatting:
+2025-05-20T06:47:08.245Z info: Initializing card payment with MaishaPay:
+2025-05-20T06:47:08.245Z info: Card payment payload:
+2025-05-20T06:47:08.503Z error: Card payment initialization error:
+2025-05-20T06:47:51.378Z info: Payment initialization request received:
+2025-05-20T06:47:51.379Z info: Payment initialization details:
+2025-05-20T06:47:51.379Z info: Card payment request received:
+2025-05-20T06:47:51.427Z info: Initializing card payment with MaishaPay:
+2025-05-20T06:47:51.428Z info: Card payment payload:
+2025-05-20T06:47:53.252Z error: Card payment initialization error:
+2025-05-20T06:47:53.253Z error: Payment initialization error:
+2025-05-20T06:47:56.188Z info: Payment initialization request received:
+2025-05-20T06:47:56.189Z info: Payment initialization details:
+2025-05-20T06:47:56.189Z info: Card payment request received:
+2025-05-20T06:47:56.236Z info: Initializing card payment with MaishaPay:
+2025-05-20T06:47:56.237Z info: Card payment payload:
+2025-05-20T06:47:56.600Z error: Card payment initialization error:
+2025-05-20T06:47:56.601Z error: Payment initialization error:
+2025-05-20T06:47:59.176Z info: Payment initialization request received:
+2025-05-20T06:47:59.176Z info: Payment initialization details:
+2025-05-20T06:47:59.176Z info: Card payment request received:
+2025-05-20T06:47:59.224Z info: Initializing card payment with MaishaPay:
+2025-05-20T06:47:59.224Z info: Card payment payload:
+2025-05-20T06:47:59.494Z error: Card payment initialization error:
+2025-05-20T06:47:59.494Z error: Payment initialization error:
+2025-05-20T06:52:54.529Z info: Payment initialization request received:
+2025-05-20T06:52:54.531Z info: Payment initialization details:
+2025-05-20T06:52:54.531Z info: Card payment request received:
+2025-05-20T06:53:09.246Z info: Payment initialization request received:
+2025-05-20T06:53:09.246Z info: Payment initialization details:
+2025-05-20T06:53:09.246Z info: Card payment request received:
+2025-05-20T06:53:09.301Z info: Initializing card payment with MaishaPay:
+2025-05-20T06:53:09.302Z info: Card payment payload:
+2025-05-20T06:53:11.177Z error: Card payment initialization error:
+2025-05-20T06:53:11.177Z error: Payment initialization error:
+2025-05-20T07:03:02.961Z info: Payment initialization request received:
+2025-05-20T07:03:02.962Z info: Payment initialization details:
+2025-05-20T07:03:02.962Z info: Card payment request received:
+2025-05-20T07:03:03.016Z info: Initializing card payment with MaishaPay:
+2025-05-20T07:03:03.017Z info: Card payment payload:
+2025-05-20T07:03:04.946Z error: Card payment initialization error:
+2025-05-20T07:03:04.947Z error: Payment initialization error:
+2025-05-20T07:04:53.315Z info: Payment initialization request received:
+2025-05-20T07:04:53.315Z info: Payment initialization details:
+2025-05-20T07:04:53.315Z info: Card payment request received:
+2025-05-20T07:04:53.368Z info: Initializing card payment with MaishaPay:
+2025-05-20T07:04:53.369Z info: Card payment payload:
+2025-05-20T07:04:55.080Z error: Card payment initialization error:
+2025-05-20T07:04:55.081Z error: Failed request payload:
+2025-05-20T07:05:10.707Z info: Payment initialization request received:
+2025-05-20T07:05:10.708Z info: Payment initialization details:
+2025-05-20T07:05:10.708Z info: Card payment request received:
+2025-05-20T07:05:10.759Z info: Initializing card payment with MaishaPay:
+2025-05-20T07:05:10.760Z info: Card payment payload:
+2025-05-20T07:05:11.334Z error: Card payment initialization error:
+2025-05-20T07:05:11.334Z error: Failed request payload:
+2025-05-20T07:06:26.003Z info: Payment initialization request received:
+2025-05-20T07:06:26.003Z info: Payment initialization details:
+2025-05-20T07:06:26.004Z info: Card payment request received:
+2025-05-20T07:06:26.056Z info: Card payment payload (sanitized):
+2025-05-20T07:06:27.344Z info: MaishaPay card payment response:
+2025-05-20T07:08:48.942Z info: Payment initialization request received:
+2025-05-20T07:08:48.942Z info: Payment initialization details:
+2025-05-20T07:08:48.942Z info: Card payment request received:
+2025-05-20T07:08:48.987Z info: Card payment payload (sanitized):
+2025-05-20T07:08:50.761Z info: MaishaPay card payment response:
