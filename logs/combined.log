@@ -317,3 +317,6 @@
 2025-05-19T09:41:40.287Z info: Determining payment status from:
 2025-05-19T09:41:40.409Z info: Updating listing after payment:
 2025-05-19T09:41:40.464Z info: Listing activated after payment:
+2025-05-20T01:30:21.131Z info: Creating temporary listing
+2025-05-20T01:30:21.134Z info: Creating temporary listing with data
+2025-05-20T01:30:21.251Z info: Temporary listing created successfully
