@@ -197,13 +197,13 @@ app.use("/api", (req, res) => {
   res.status(404).json({ error: "API endpoint not found" });
 });
 
-if (process.env.NODE_ENV === "production") {
-  const reactBuildPath = path.join(__dirname, "../frontend/dist");
-  app.use(express.static(reactBuildPath));
-  app.get("*", (req, res) => {
-    res.sendFile(path.join(reactBuildPath, "index.html"));
-  });
-}
+// if (process.env.NODE_ENV === "production") {
+//   const reactBuildPath = path.join(__dirname, "../frontend/dist");
+//   app.use(express.static(reactBuildPath));
+//   app.get("*", (req, res) => {
+//     res.sendFile(path.join(reactBuildPath, "index.html"));
+//   });
+// }
 
 const PORT = process.env.PORT || 5002;
 const MONGO_URI = process.env.MONGODB_URI;
