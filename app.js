@@ -3,10 +3,8 @@ const path = require("path");
 const cron = require('node-cron');
 const Listing = require('./models/Listing');
 
-// Use explicit path to ensure .env is found
 dotenv.config({ path: path.resolve(__dirname, "./.env") });
 
-// Debug output for environment variables
 console.log("Environment variables loaded:");
 console.log("NODE_ENV:", process.env.NODE_ENV);
 console.log(
@@ -15,7 +13,6 @@ console.log(
   !!process.env.MY_AWS_ACCESS_KEY_ID
 );
 
-// Rest of your imports
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
@@ -23,10 +20,11 @@ const userRoutes = require("./routes/user-routes");
 const listingRoutes = require("./routes/listing-routes");
 const adminRoutes = require("./routes/adminRoutes");
 const paymentRoutes = require("./routes/paymentRoutes");
+const whatsappRoutes = require("./routes/whatsappRoutes");
+const whatsappService = require("./services/whatsappService");
 const winston = require("winston");
 const fs = require("fs");
 
-// Ensure logs directory exists
 const logsDir = path.join(__dirname, "logs");
 if (!fs.existsSync(logsDir)) {
   fs.mkdirSync(logsDir, { recursive: true });
@@ -34,7 +32,6 @@ if (!fs.existsSync(logsDir)) {
 
 const isServerless = process.env.NETLIFY || false;
 
-// Configure Winston logger
 const logger = winston.createLogger({
   level: "info",
   format: winston.format.combine(
@@ -46,25 +43,18 @@ const logger = winston.createLogger({
   ),
   defaultMeta: { service: "listing-service" },
   transports: [
-    new winston.transports.Console(), // Log to console always
+    new winston.transports.Console(),
   ],
 });
 
-// Basic implementation of logMetric - replace with your actual metrics system
 function logMetric(metricName, metricData) {
   logger.info(`METRIC: ${metricName}`, metricData);
-  // In production, you would send this to your metrics system
-  // Example: datadog.sendMetric(metricName, metricData)
 }
 
-// Basic implementation of sendAlert - replace with your actual alerting system
 function sendAlert(alertTitle, alertData) {
   logger.error(`ALERT: ${alertTitle}`, alertData);
-  // In production, you would send this to your alerting system
-  // Example: slack.sendAlert(alertTitle, alertData) or email.sendAlert(alertTitle, alertData)
 }
 
-// Subscription expiration checker
 const updateExpiredSubscriptions = async () => {
   const startTime = Date.now();
   let success = false;
@@ -88,7 +78,6 @@ const updateExpiredSubscriptions = async () => {
   
   const duration = Date.now() - startTime;
   
-  // Log metrics for monitoring tools like Datadog, New Relic, etc.
   logMetric('subscription_update_job', {
     success,
     duration,
@@ -96,8 +85,7 @@ const updateExpiredSubscriptions = async () => {
     errorMessage: error ? error.message : null
   });
   
-  // Alert if the job fails or takes too long
-  if (!success || duration > 300000) { // 5 minutes
+  if (!success || duration > 300000) {
     sendAlert('Subscription update job issue', {
       success,
       duration,
@@ -109,7 +97,6 @@ const updateExpiredSubscriptions = async () => {
   return { success, updatedCount, duration };
 };
 
-// Logging middleware for listing operations
 const logListingData = (req, res, next) => {
   if (req.path.includes("/listings/add") && req.method === "POST") {
     logger.info("==== RECEIVED LISTING DATA ON SERVER ====");
@@ -125,11 +112,9 @@ const logListingData = (req, res, next) => {
         : "No files",
     });
 
-    // Store original response methods
     const originalJson = res.json;
     const originalSend = res.send;
 
-    // Override response methods to log what's being sent back
     res.json = function (data) {
       logger.info("==== DATABASE SAVED LISTING DATA ====");
       logger.info({ response: data });
@@ -145,7 +130,6 @@ const logListingData = (req, res, next) => {
     };
   }
 
-  // Add error logging for listings endpoints
   if (req.path.includes("/listings") || req.path.includes("/payments")) {
     const originalSend = res.send;
     const originalJson = res.json;
@@ -188,54 +172,42 @@ const logListingData = (req, res, next) => {
   next();
 };
 
-// App setup
 const app = express();
 
-// FIRST: Essential middleware
 app.use(cors());
 app.use(express.json());
 app.use("/uploads", express.static("uploads"));
 
-// SECOND: Logging middleware
 app.use((req, res, next) => {
   console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
   next();
 });
 app.use(logListingData);
 
-// THIRD: Register routes
 console.log('Registering payment routes at /api/payments');
 app.use("/api/payments", paymentRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/listings", listingRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/whatsapp", whatsappRoutes);
 app.use("/payments", paymentRoutes);
 app.use("/listing", require("./routes/listing-routes"));
 
-// LAST: Error handling and catch-all routes
 app.use("/api", (req, res) => {
   res.status(404).json({ error: "API endpoint not found" });
 });
 
-// Serve React in production
 if (process.env.NODE_ENV === "production") {
-  // Adjust this path to where your React build is located
   const reactBuildPath = path.join(__dirname, "../frontend/dist");
-
-  // Serve static files
   app.use(express.static(reactBuildPath));
-
-  // Handle React routing
   app.get("*", (req, res) => {
     res.sendFile(path.join(reactBuildPath, "index.html"));
   });
 }
 
-// Database & Server connection
 const PORT = process.env.PORT || 5002;
 const MONGO_URI = process.env.MONGODB_URI;
 
-// Add error handling for uncaught exceptions
 process.on("uncaughtException", (error) => {
   logger.error("Uncaught Exception:", error);
   process.exit(1);
@@ -248,24 +220,21 @@ process.on("unhandledRejection", (reason, promise) => {
   });
 });
 
-// Override console methods to use Winston
-console.log = function () {
-  logger.info.apply(logger, arguments);
-};
-console.error = function () {
-  logger.error.apply(logger, arguments);
-};
-console.info = function () {
-  logger.info.apply(logger, arguments);
-};
-console.warn = function () {
-  logger.warn.apply(logger, arguments);
-};
+// console.log = function () {
+//   logger.info.apply(logger, arguments);
+// };
+// console.error = function () {
+//   logger.error.apply(logger, arguments);
+// };
+// console.info = function () {
+//   logger.info.apply(logger, arguments);
+// };
+// console.warn = function () {
+//   logger.warn.apply(logger, arguments);
+// };
 
-// Set up the job system
 const setupJobSystem = () => {
   if (process.env.NODE_ENV === 'production') {
-    // In production, set up a dedicated worker process/service for this job
     if (process.env.WORKER_PROCESS === 'true') {
       cron.schedule('0 1 * * *', async () => {
         logger.info('Running subscription update job (production worker)');
@@ -274,7 +243,6 @@ const setupJobSystem = () => {
       logger.info('Worker process: Subscription update job scheduled');
     }
   } else {
-    // In development, just run it directly
     cron.schedule('0 1 * * *', async () => {
       logger.info('Running subscription update job (development)');
       await updateExpiredSubscriptions();
@@ -284,12 +252,19 @@ const setupJobSystem = () => {
 };
 
 mongoose
-  .connect(MONGO_URI)  // Removed deprecated options
+  .connect(MONGO_URI)
   .then(() => {
     logger.info("✅ Connected to MongoDB");
+    
+    if (process.env.ENABLE_WHATSAPP !== 'false') {
+      logger.info("🔄 Initializing WhatsApp service...");
+      whatsappService.initialize().catch(error => {
+        logger.error("❌ WhatsApp service initialization failed:", error);
+      });
+    }
+    
     app.listen(PORT, () => logger.info(`🚀 Server running on port ${PORT}`));
     
-    // Set up the job system
     if (process.env.DISABLE_CRON_JOBS !== 'true') {
       setupJobSystem();
     }
@@ -298,3 +273,15 @@ mongoose
     logger.error("❌ MongoDB connection error:", err.message);
     process.exit(1);
   });
+
+process.on('SIGTERM', async () => {
+  logger.info('🔄 Gracefully shutting down...');
+  await whatsappService.destroy();
+  process.exit(0);
+});
+
+process.on('SIGINT', async () => {
+  logger.info('🔄 Gracefully shutting down...');
+  await whatsappService.destroy();
+  process.exit(0);
+});
