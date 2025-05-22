@@ -562,3 +562,10 @@
 2025-05-20T07:18:44.423Z info: Card payment request received:
 2025-05-20T07:18:44.471Z info: Card payment payload (sanitized):
 2025-05-20T07:18:46.382Z info: MaishaPay card payment response:
+2025-05-22T21:00:38.381Z info: Creating temporary listing
+2025-05-22T21:00:38.385Z info: Creating temporary listing with data
+2025-05-22T21:00:38.484Z info: Temporary listing created successfully
+2025-05-22T21:00:50.172Z info: Deleting image from S3: https://congondaku.s3.amazonaws.com/real-estate-listings/1747947637450-266153832.jpg
+2025-05-22T21:00:54.118Z info: Deleting image from S3: https://congondaku.s3.amazonaws.com/real-estate-listings/1747858661220-502729249.jpg
+2025-05-22T21:00:57.736Z info: Deleting image from S3: https://congondaku.s3.amazonaws.com/real-estate-listings/1747704620156-147167970.jpg
+2025-05-22T21:00:57.744Z info: Deleting image from S3: https://congondaku.s3.amazonaws.com/real-estate-listings/1747704620157-422626023.jpg

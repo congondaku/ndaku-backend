@@ -1,6 +1,3 @@
-2025/05/21-23:43:43.839 8403 Reusing MANIFEST /Users/youssoufyogue/Desktop/ndaku-backend/whatsapp_auth/session/Default/Local Storage/leveldb/MANIFEST-000001
-2025/05/21-23:43:43.840 8403 Recovering log #3
-2025/05/21-23:43:43.841 8403 Reusing old log /Users/youssoufyogue/Desktop/ndaku-backend/whatsapp_auth/session/Default/Local Storage/leveldb/000003.log 
-2025/05/21-23:45:44.656 27703 Level-0 table #5: started
-2025/05/21-23:45:44.665 27703 Level-0 table #5: 18585 bytes OK
-2025/05/21-23:45:44.675 27703 Delete type=0 #3
+2025/05/21-23:46:19.643 f603 Reusing MANIFEST /Users/youssoufyogue/Desktop/ndaku-backend/whatsapp_auth/session/Default/Local Storage/leveldb/MANIFEST-000001
+2025/05/21-23:46:19.644 f603 Recovering log #4
+2025/05/21-23:46:19.644 f603 Reusing old log /Users/youssoufyogue/Desktop/ndaku-backend/whatsapp_auth/session/Default/Local Storage/leveldb/000004.log 

@@ -23,7 +23,7 @@ const whatsappVerificationSchema = new mongoose.Schema({
   createdAt: {
     type: Date,
     default: Date.now,
-    expires: 300 // Expires after 5 minutes (300 seconds)
+    expires: 300 
   },
   lastAttemptAt: {
     type: Date,

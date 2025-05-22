@@ -22,6 +22,11 @@ const adminRoutes = require("./routes/adminRoutes");
 const paymentRoutes = require("./routes/paymentRoutes");
 const whatsappRoutes = require("./routes/whatsappRoutes");
 const whatsappService = require("./services/whatsappService");
+
+// Add SMS routes
+const smsRoutes = require("./routes/smsRoutes");
+const smsService = require("./services/smsService");
+
 const winston = require("winston");
 const fs = require("fs");
 
@@ -184,12 +189,18 @@ app.use((req, res, next) => {
 });
 app.use(logListingData);
 
+
+
 console.log('Registering payment routes at /api/payments');
 app.use("/api/payments", paymentRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/listings", listingRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/whatsapp", whatsappRoutes);
+
+// Add SMS verification routes
+app.use("/api/sms", smsRoutes);
+
 app.use("/payments", paymentRoutes);
 app.use("/listing", require("./routes/listing-routes"));
 
@@ -256,6 +267,15 @@ mongoose
   .then(() => {
     logger.info("✅ Connected to MongoDB");
     
+    // Initialize SMS service
+    if (process.env.ENABLE_SMS_VERIFICATION !== 'false') {
+      logger.info("🔄 Initializing SMS verification service...");
+      smsService.initialize().catch(error => {
+        logger.error("❌ SMS service initialization failed:", error);
+      });
+    }
+    
+    // Keep WhatsApp service as backup
     if (process.env.ENABLE_WHATSAPP !== 'false') {
       logger.info("🔄 Initializing WhatsApp service...");
       whatsappService.initialize().catch(error => {
@@ -263,7 +283,13 @@ mongoose
       });
     }
     
-    app.listen(PORT, () => logger.info(`🚀 Server running on port ${PORT}`));
+    app.listen(PORT, () => {
+      logger.info(`🚀 Server running on port ${PORT}`);
+      logger.info('📋 SMS Verification endpoints:');
+      logger.info('  POST /api/sms/send-verification - Send SMS verification code');
+      logger.info('  POST /api/sms/verify-code - Verify SMS code');
+      logger.info('  GET  /api/sms/service-status - Check SMS service status');
+    });
     
     if (process.env.DISABLE_CRON_JOBS !== 'true') {
       setupJobSystem();
@@ -276,12 +302,40 @@ mongoose
 
 process.on('SIGTERM', async () => {
   logger.info('🔄 Gracefully shutting down...');
-  await whatsappService.destroy();
+  
+  // Cleanup SMS service
+  try {
+    await smsService.destroy();
+  } catch (error) {
+    logger.error('Error destroying SMS service:', error);
+  }
+  
+  // Cleanup WhatsApp service
+  try {
+    await whatsappService.destroy();
+  } catch (error) {
+    logger.error('Error destroying WhatsApp service:', error);
+  }
+  
   process.exit(0);
 });
 
 process.on('SIGINT', async () => {
   logger.info('🔄 Gracefully shutting down...');
-  await whatsappService.destroy();
+  
+  // Cleanup SMS service
+  try {
+    await smsService.destroy();
+  } catch (error) {
+    logger.error('Error destroying SMS service:', error);
+  }
+  
+  // Cleanup WhatsApp service
+  try {
+    await whatsappService.destroy();
+  } catch (error) {
+    logger.error('Error destroying WhatsApp service:', error);
+  }
+  
   process.exit(0);
 });
